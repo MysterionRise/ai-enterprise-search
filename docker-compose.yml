@@ -1,0 +1,252 @@
+version: '3.8'
+
+services:
+  # OpenSearch - Core search engine with k-NN support
+  opensearch:
+    image: opensearchproject/opensearch:2.11.1
+    container_name: enterprise-search-opensearch
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms1g -Xmx1g"
+      - DISABLE_SECURITY_PLUGIN=true  # Simplified for local dev
+      - "OPENSEARCH_INITIAL_ADMIN_PASSWORD=Admin123!"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+    ports:
+      - "9200:9200"
+      - "9600:9600"
+    networks:
+      - enterprise-search
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # OpenSearch Dashboards - UI for OpenSearch
+  opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards:2.11.1
+    container_name: enterprise-search-dashboards
+    environment:
+      - OPENSEARCH_HOSTS=http://opensearch:9200
+      - DISABLE_SECURITY_DASHBOARDS_PLUGIN=true
+    ports:
+      - "5601:5601"
+    networks:
+      - enterprise-search
+    depends_on:
+      opensearch:
+        condition: service_healthy
+
+  # Redis - Celery broker and result backend
+  redis:
+    image: redis:7.2-alpine
+    container_name: enterprise-search-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - enterprise-search
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL - Metadata, user management, job state
+  postgres:
+    image: postgres:16-alpine
+    container_name: enterprise-search-postgres
+    environment:
+      - POSTGRES_DB=enterprise_search
+      - POSTGRES_USER=searchuser
+      - POSTGRES_PASSWORD=searchpass123
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./config/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - enterprise-search
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U searchuser -d enterprise_search"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Apache Tika Server - Document parsing
+  tika:
+    image: apache/tika:2.9.1.0
+    container_name: enterprise-search-tika
+    ports:
+      - "9998:9998"
+    networks:
+      - enterprise-search
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9998/tika || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # FastAPI Application
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    container_name: enterprise-search-api
+    environment:
+      - OPENSEARCH_HOST=opensearch
+      - OPENSEARCH_PORT=9200
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=enterprise_search
+      - POSTGRES_USER=searchuser
+      - POSTGRES_PASSWORD=searchpass123
+      - TIKA_SERVER_URL=http://tika:9998
+      - JWT_SECRET_KEY=your-secret-key-change-in-production
+      - JWT_ALGORITHM=HS256
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./src:/app/src
+      - ./data:/app/data
+      - ./config:/app/config
+    ports:
+      - "8000:8000"
+    networks:
+      - enterprise-search
+    depends_on:
+      opensearch:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      tika:
+        condition: service_healthy
+    command: uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # Celery Worker - Background tasks (embedding, indexing)
+  worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.worker
+    container_name: enterprise-search-worker
+    environment:
+      - OPENSEARCH_HOST=opensearch
+      - OPENSEARCH_PORT=9200
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=enterprise_search
+      - POSTGRES_USER=searchuser
+      - POSTGRES_PASSWORD=searchpass123
+      - TIKA_SERVER_URL=http://tika:9998
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./src:/app/src
+      - ./data:/app/data
+      - ./config:/app/config
+      - ./models:/app/models  # Cache for downloaded models
+    networks:
+      - enterprise-search
+    depends_on:
+      redis:
+        condition: service_healthy
+      opensearch:
+        condition: service_healthy
+    command: celery -A src.workers.tasks worker --loglevel=info --concurrency=2
+
+  # Celery Beat - Periodic task scheduler
+  beat:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.worker
+    container_name: enterprise-search-beat
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./src:/app/src
+      - ./config:/app/config
+    networks:
+      - enterprise-search
+    depends_on:
+      redis:
+        condition: service_healthy
+    command: celery -A src.workers.tasks beat --loglevel=info
+
+  # Flower - Celery monitoring UI
+  flower:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.worker
+    container_name: enterprise-search-flower
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    ports:
+      - "5555:5555"
+    networks:
+      - enterprise-search
+    depends_on:
+      redis:
+        condition: service_healthy
+    command: celery -A src.workers.tasks flower --port=5555
+
+  # Prometheus - Metrics collection
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: enterprise-search-prometheus
+    volumes:
+      - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    ports:
+      - "9090:9090"
+    networks:
+      - enterprise-search
+
+  # Grafana - Metrics visualization
+  grafana:
+    image: grafana/grafana:10.2.2
+    container_name: enterprise-search-grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_USER=admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./config/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./config/grafana/datasources:/etc/grafana/provisioning/datasources
+    ports:
+      - "3000:3000"
+    networks:
+      - enterprise-search
+    depends_on:
+      - prometheus
+
+networks:
+  enterprise-search:
+    driver: bridge
+
+volumes:
+  opensearch-data:
+  redis-data:
+  postgres-data:
+  prometheus-data:
+  grafana-data:
