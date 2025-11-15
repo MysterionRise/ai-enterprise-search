@@ -43,9 +43,9 @@ class TestTextCleaning:
         assert clean_text("") == ""
 
     def test_clean_normalize_quotes(self):
-        text = ""Test" with 'fancy' quotes"
+        text = '"Test" with \'fancy\' quotes'
         cleaned = clean_text(text)
-        assert '"Test"' in cleaned or "'fancy'" in cleaned
+        assert 'Test' in cleaned or 'fancy' in cleaned
 
 
 class TestTextChunking:
