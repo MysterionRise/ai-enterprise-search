@@ -60,7 +60,7 @@ class TestTextChunking:
 
     def test_chunk_long_text(self):
         # Create text with 200 words
-        text = " ".join([f"word{i}" for i in range(200)])
+        text = " ".join(["word" + str(i) for i in range(200)])
         chunks = chunk_text(text, chunk_size=50, chunk_overlap=10)
         assert len(chunks) > 1
 
@@ -69,7 +69,7 @@ class TestTextChunking:
         assert chunks == []
 
     def test_chunk_indices_sequential(self):
-        text = " ".join([f"word{i}" for i in range(100)])
+        text = " ".join(["word" + str(i) for i in range(100)])
         chunks = chunk_text(text, chunk_size=20, chunk_overlap=5)
         for i, (idx, _, _, _) in enumerate(chunks):
             assert idx == i
@@ -106,7 +106,7 @@ class TestKeywordExtraction:
         assert "Database" in keywords
 
     def test_extract_max_keywords(self):
-        text = " ".join([f"Word{i}" for i in range(20)])
+        text = " ".join(["Word" + str(i) for i in range(20)])
         keywords = extract_keywords(text, max_keywords=5)
         assert len(keywords) <= 5
 
