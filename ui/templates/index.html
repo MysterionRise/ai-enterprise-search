@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Search</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .header h1 {
+            font-size: 32px;
+            color: #1a202c;
+            margin-bottom: 8px;
+        }
+        .header p {
+            color: #718096;
+        }
+        .auth-section {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+        }
+        .search-box {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+        }
+        .search-input {
+            width: 100%;
+            padding: 16px;
+            font-size: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            margin-bottom: 12px;
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: #4299e1;
+        }
+        .btn {
+            padding: 12px 24px;
+            font-size: 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .btn-primary {
+            background: #4299e1;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #3182ce;
+        }
+        .btn-secondary {
+            background: #718096;
+            color: white;
+            margin-left: 8px;
+        }
+        .results {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .result-item {
+            padding: 16px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        .result-title {
+            font-size: 18px;
+            color: #2b6cb0;
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+        .result-title:hover {
+            text-decoration: underline;
+        }
+        .result-snippet {
+            color: #4a5568;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+        .result-meta {
+            font-size: 13px;
+            color: #718096;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            background: #edf2f7;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-right: 8px;
+        }
+        .facets {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+        }
+        .facet-group {
+            margin-bottom: 12px;
+        }
+        .facet-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .facet-item {
+            padding: 4px 0;
+            font-size: 14px;
+            cursor: pointer;
+            color: #4299e1;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+        }
+        .error {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+        }
+        .success {
+            background: #c6f6d5;
+            color: #2f855a;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+        }
+        .user-info {
+            font-size: 14px;
+            color: #4a5568;
+            margin-top: 12px;
+        }
+        .input-group {
+            margin-bottom: 12px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Enterprise Search</h1>
+            <p>Secure, multilingual, context-aware search platform</p>
+        </div>
+
+        <div id="auth-section" class="auth-section">
+            <h2>Login</h2>
+            <div id="auth-message"></div>
+            <div class="input-group">
+                <label>Username</label>
+                <input type="text" id="username" placeholder="john.doe">
+            </div>
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="password" placeholder="password123">
+            </div>
+            <button class="btn btn-primary" onclick="login()">Login</button>
+            <div class="user-info" style="margin-top: 16px;">
+                <strong>Demo Users:</strong><br>
+                john.doe / password123 (UK, HR)<br>
+                jane.smith / password123 (US, Engineering)<br>
+                admin / password123 (US, IT, Admin)
+            </div>
+        </div>
+
+        <div id="search-section" style="display:none;">
+            <div class="search-box">
+                <input type="text" class="search-input" id="search-query" placeholder="Search for documents..." onkeypress="handleKeyPress(event)">
+                <button class="btn btn-primary" onclick="search()">Search</button>
+                <button class="btn btn-secondary" onclick="logout()">Logout</button>
+                <div class="user-info" id="user-info"></div>
+            </div>
+
+            <div id="facets-container"></div>
+            <div id="results-container"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000/api/v1';
+        let authToken = localStorage.getItem('authToken');
+
+        // Check if already logged in
+        if (authToken) {
+            showSearchSection();
+            loadUserInfo();
+        }
+
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const messageEl = document.getElementById('auth-message');
+
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({username, password})
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    authToken = data.access_token;
+                    localStorage.setItem('authToken', authToken);
+                    messageEl.innerHTML = '<div class="success">Login successful!</div>';
+                    setTimeout(() => {
+                        showSearchSection();
+                        loadUserInfo();
+                    }, 500);
+                } else {
+                    messageEl.innerHTML = `<div class="error">Login failed: ${data.detail}</div>`;
+                }
+            } catch (error) {
+                messageEl.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        async function loadUserInfo() {
+            try {
+                const response = await fetch(`${API_URL}/auth/me`, {
+                    headers: {'Authorization': `Bearer ${authToken}`}
+                });
+                const user = await response.json();
+                document.getElementById('user-info').innerHTML = `
+                    Logged in as: <strong>${user.full_name || user.username}</strong>
+                    (${user.department}, ${user.country})
+                `;
+            } catch (error) {
+                console.error('Failed to load user info:', error);
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('authToken');
+            authToken = null;
+            document.getElementById('auth-section').style.display = 'block';
+            document.getElementById('search-section').style.display = 'none';
+        }
+
+        function showSearchSection() {
+            document.getElementById('auth-section').style.display = 'none';
+            document.getElementById('search-section').style.display = 'block';
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                search();
+            }
+        }
+
+        async function search() {
+            const query = document.getElementById('search-query').value;
+            const resultsContainer = document.getElementById('results-container');
+            const facetsContainer = document.getElementById('facets-container');
+
+            if (!query) return;
+
+            resultsContainer.innerHTML = '<div class="loading">Searching...</div>';
+
+            try {
+                const response = await fetch(`${API_URL}/search/query`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        query: query,
+                        size: 10,
+                        use_hybrid: true
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    displayResults(data);
+                    displayFacets(data.facets || []);
+                } else {
+                    resultsContainer.innerHTML = `<div class="error">Search failed: ${data.detail}</div>`;
+                }
+            } catch (error) {
+                resultsContainer.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        function displayResults(data) {
+            const resultsContainer = document.getElementById('results-container');
+
+            if (data.results.length === 0) {
+                resultsContainer.innerHTML = `
+                    <div class="results">
+                        <p>No results found for "${data.query}"</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = `
+                <div class="results">
+                    <p style="margin-bottom: 16px; color: #718096;">
+                        Found ${data.total} results in ${data.took_ms}ms
+                        ${data.personalized ? '(Personalized for your location and department)' : ''}
+                    </p>
+            `;
+
+            data.results.forEach(result => {
+                html += `
+                    <div class="result-item">
+                        <div class="result-title" onclick="window.open('${result.url || '#'}', '_blank')">
+                            ${result.title}
+                        </div>
+                        <div class="result-snippet">${result.snippet}</div>
+                        <div class="result-meta">
+                            <span class="badge">${result.source}</span>
+                            <span class="badge">${result.language}</span>
+                            ${result.country_tags.map(c => `<span class="badge">${c}</span>`).join('')}
+                            <span style="margin-left: 8px;">Score: ${result.score.toFixed(3)}</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            resultsContainer.innerHTML = html;
+        }
+
+        function displayFacets(facets) {
+            const facetsContainer = document.getElementById('facets-container');
+
+            if (facets.length === 0) {
+                facetsContainer.innerHTML = '';
+                return;
+            }
+
+            let html = '<div class="facets"><h3>Filters</h3>';
+
+            facets.forEach(group => {
+                html += `<div class="facet-group">`;
+                html += `<div class="facet-title">${group.field.toUpperCase()}</div>`;
+                group.facets.slice(0, 5).forEach(facet => {
+                    html += `<div class="facet-item">${facet.value} (${facet.count})</div>`;
+                });
+                html += `</div>`;
+            });
+
+            html += '</div>';
+            facetsContainer.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
