@@ -14,7 +14,6 @@ from src.models.documents import (
     DocumentMetadata,
 )
 from src.services.opensearch_service import opensearch_service
-from src.services.embedding_service import embedding_service
 from src.utils.text_processing import detect_language, clean_text, chunk_text, compute_hash
 from src.utils.document_parser import document_parser
 from src.core.config import settings
@@ -27,8 +26,13 @@ class IngestService:
 
     def __init__(self):
         self.os_service = opensearch_service
-        self.embedding_service = embedding_service
         self.parser = document_parser
+
+    def _get_embedding_service(self):
+        """Lazy import of embedding service"""
+        from src.services.embedding_service import embedding_service
+
+        return embedding_service
 
     async def ingest_document(self, request: DocumentIngestRequest) -> IngestResponse:
         """
@@ -192,7 +196,8 @@ class IngestService:
 
         # Generate embeddings in batch
         logger.info(f"Generating embeddings for {len(chunk_texts)} chunks")
-        embeddings = self.embedding_service.embed_batch(chunk_texts)
+        embedding_service = self._get_embedding_service()
+        embeddings = embedding_service.embed_batch(chunk_texts)
 
         # Create chunk objects
         chunks = []

@@ -1,14 +1,33 @@
 """Embedding service using sentence-transformers (bge-m3)"""
 
-from typing import List, Union
-import numpy as np
-from sentence_transformers import SentenceTransformer
+from typing import List, Optional
 import logging
-import torch
 
 from src.core.config import settings
 
 logger = logging.getLogger(__name__)
+
+# Lazy imports for heavy ML dependencies
+_SentenceTransformer = None
+_np = None
+
+
+def _ensure_imports():
+    """Lazy import of ML dependencies"""
+    global _SentenceTransformer, _np
+    if _SentenceTransformer is None:
+        try:
+            from sentence_transformers import SentenceTransformer
+            import numpy as np
+
+            _SentenceTransformer = SentenceTransformer
+            _np = np
+        except ImportError as e:
+            logger.error(f"Failed to import ML dependencies: {e}")
+            raise ImportError(
+                "sentence-transformers and numpy are required for embedding service. "
+                "Install with: pip install sentence-transformers numpy"
+            )
 
 
 class EmbeddingService:
@@ -22,11 +41,12 @@ class EmbeddingService:
         self._model = None
 
     @property
-    def model(self) -> SentenceTransformer:
+    def model(self):
         """Lazy load the embedding model"""
         if self._model is None:
+            _ensure_imports()
             logger.info(f"Loading embedding model: {self.model_name}")
-            self._model = SentenceTransformer(self.model_name, device=self.device)
+            self._model = _SentenceTransformer(self.model_name, device=self.device)
             logger.info(f"Model loaded on device: {self.device}")
         return self._model
 
@@ -40,6 +60,7 @@ class EmbeddingService:
         Returns:
             Embedding vector as list of floats
         """
+        _ensure_imports()
         embedding = self.model.encode(text, normalize_embeddings=True, show_progress_bar=False)
         return embedding.tolist()
 
@@ -56,6 +77,7 @@ class EmbeddingService:
         if not texts:
             return []
 
+        _ensure_imports()
         logger.info(f"Embedding batch of {len(texts)} texts")
 
         embeddings = self.model.encode(
@@ -93,12 +115,13 @@ class EmbeddingService:
         Returns:
             Similarity score between -1 and 1
         """
+        _ensure_imports()
         embeddings = self.embed_batch([text1, text2])
-        emb1 = np.array(embeddings[0])
-        emb2 = np.array(embeddings[1])
+        emb1 = _np.array(embeddings[0])
+        emb2 = _np.array(embeddings[1])
 
         # Cosine similarity (normalized vectors)
-        similarity = float(np.dot(emb1, emb2))
+        similarity = float(_np.dot(emb1, emb2))
         return similarity
 
     def get_model_info(self) -> dict:

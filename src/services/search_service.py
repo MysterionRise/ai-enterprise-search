@@ -7,7 +7,6 @@ import logging
 
 from src.models.search import SearchRequest, SearchResponse, SearchResult, Facet, FacetGroup
 from src.services.opensearch_service import opensearch_service
-from src.services.embedding_service import embedding_service
 from src.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -19,6 +18,12 @@ class SearchService:
     def __init__(self):
         self.os_client = opensearch_service.client
         self.chunks_index = settings.CHUNKS_INDEX
+
+    def _get_embedding_service(self):
+        """Lazy import of embedding service"""
+        from src.services.embedding_service import embedding_service
+
+        return embedding_service
 
     async def search(self, request: SearchRequest) -> SearchResponse:
         """
@@ -147,6 +152,7 @@ class SearchService:
         bm25_hits = bm25_response["hits"]["hits"]
 
         # 2. k-NN Vector Search
+        embedding_service = self._get_embedding_service()
         query_vector = embedding_service.embed_text(query)
 
         knn_body = {
