@@ -1,4 +1,5 @@
 """Document parsing utilities using Tika and OCR"""
+
 from typing import Optional, Dict, Any
 import logging
 import requests
@@ -38,8 +39,9 @@ class DocumentParser:
             result = self._parse_with_tika(file_content, filename)
 
             # If text is empty or it's an image, try OCR
-            if (not result["text"] or len(result["text"].strip()) < 50) and \
-               mime_type.startswith("image/"):
+            if (not result["text"] or len(result["text"].strip()) < 50) and mime_type.startswith(
+                "image/"
+            ):
                 logger.info(f"Attempting OCR for {filename}")
                 ocr_text = self._extract_text_ocr(file_content)
                 if ocr_text:
@@ -50,11 +52,7 @@ class DocumentParser:
 
         except Exception as e:
             logger.error(f"Error parsing file {filename}: {e}", exc_info=True)
-            return {
-                "text": "",
-                "metadata": {},
-                "error": str(e)
-            }
+            return {"text": "", "metadata": {}, "error": str(e)}
 
     def _detect_mime_type(self, content: bytes) -> str:
         """Detect MIME type from file content"""
@@ -80,14 +78,11 @@ class DocumentParser:
             # Call Tika Server for text extraction
             headers = {
                 "Accept": "application/json",
-                "Content-Disposition": f'attachment; filename="{filename}"'
+                "Content-Disposition": f'attachment; filename="{filename}"',
             }
 
             response = requests.put(
-                f"{self.tika_url}/tika",
-                data=content,
-                headers=headers,
-                timeout=60
+                f"{self.tika_url}/tika", data=content, headers=headers, timeout=60
             )
 
             if response.status_code == 200:
@@ -101,7 +96,7 @@ class DocumentParser:
                 f"{self.tika_url}/meta",
                 data=content,
                 headers={"Accept": "application/json"},
-                timeout=30
+                timeout=30,
             )
 
             metadata = {}
@@ -111,19 +106,11 @@ class DocumentParser:
                 except Exception:
                     pass
 
-            return {
-                "text": text,
-                "metadata": metadata,
-                "ocr_used": False
-            }
+            return {"text": text, "metadata": metadata, "ocr_used": False}
 
         except Exception as e:
             logger.error(f"Tika parsing failed: {e}")
-            return {
-                "text": "",
-                "metadata": {},
-                "error": str(e)
-            }
+            return {"text": "", "metadata": {}, "error": str(e)}
 
     def _extract_text_ocr(self, image_content: bytes) -> str:
         """
@@ -141,8 +128,7 @@ class DocumentParser:
 
             # Run OCR
             text = pytesseract.image_to_string(
-                image,
-                config='--oem 3 --psm 1'  # Use LSTM OCR, auto page segmentation
+                image, config="--oem 3 --psm 1"  # Use LSTM OCR, auto page segmentation
             )
 
             return text.strip()
@@ -162,11 +148,7 @@ class DocumentParser:
         Returns:
             Parsed result
         """
-        return {
-            "text": text,
-            "metadata": {"Content-Type": content_type},
-            "ocr_used": False
-        }
+        return {"text": text, "metadata": {"Content-Type": content_type}, "ocr_used": False}
 
 
 # Global instance

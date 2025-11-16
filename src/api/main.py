@@ -1,4 +1,5 @@
 """Main FastAPI application"""
+
 import logging
 import time
 from contextlib import asynccontextmanager
@@ -15,21 +16,16 @@ from src.api.routes import auth, search, ingest, health
 
 # Configure logging
 logging.basicConfig(
-    level=settings.LOG_LEVEL,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=settings.LOG_LEVEL, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
 # Prometheus metrics
 REQUEST_COUNT = Counter(
-    "http_requests_total",
-    "Total HTTP requests",
-    ["method", "endpoint", "status"]
+    "http_requests_total", "Total HTTP requests", ["method", "endpoint", "status"]
 )
 REQUEST_DURATION = Histogram(
-    "http_request_duration_seconds",
-    "HTTP request duration",
-    ["method", "endpoint"]
+    "http_request_duration_seconds", "HTTP request duration", ["method", "endpoint"]
 )
 SEARCH_QUERIES = Counter("search_queries_total", "Total search queries")
 
@@ -42,6 +38,7 @@ async def lifespan(app: FastAPI):
     # Startup: Initialize connections, load models, etc.
     try:
         from src.core.database import db
+
         db.connect()
         logger.info("Database connection initialized")
     except Exception as e:
@@ -53,6 +50,7 @@ async def lifespan(app: FastAPI):
     logger.info("Shutting down application")
     try:
         from src.core.database import db
+
         db.close()
     except Exception:
         pass
@@ -65,7 +63,7 @@ app = FastAPI(
     description="Secure, multilingual, context-aware enterprise search with RAG",
     docs_url="/docs",
     redoc_url="/redoc",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # CORS middleware
@@ -91,20 +89,13 @@ async def log_requests(request: Request, call_next):
     duration = time.time() - start_time
 
     # Log request
-    logger.info(
-        f"{request.method} {request.url.path} - {response.status_code} - {duration:.3f}s"
-    )
+    logger.info(f"{request.method} {request.url.path} - {response.status_code} - {duration:.3f}s")
 
     # Update metrics
     REQUEST_COUNT.labels(
-        method=request.method,
-        endpoint=request.url.path,
-        status=response.status_code
+        method=request.method, endpoint=request.url.path, status=response.status_code
     ).inc()
-    REQUEST_DURATION.labels(
-        method=request.method,
-        endpoint=request.url.path
-    ).observe(duration)
+    REQUEST_DURATION.labels(method=request.method, endpoint=request.url.path).observe(duration)
 
     return response
 
@@ -118,8 +109,8 @@ async def global_exception_handler(request: Request, exc: Exception):
         status_code=500,
         content={
             "error": "Internal server error",
-            "message": str(exc) if settings.DEBUG else "An error occurred"
-        }
+            "message": str(exc) if settings.DEBUG else "An error occurred",
+        },
     )
 
 
@@ -149,12 +140,12 @@ async def root():
     """Serve the search UI"""
     ui_file = os.path.join(ui_dir, "templates", "index.html")
     if os.path.exists(ui_file):
-        with open(ui_file, 'r') as f:
+        with open(ui_file, "r") as f:
             return HTMLResponse(content=f.read())
     return {
         "name": settings.APP_NAME,
         "version": settings.APP_VERSION,
         "status": "running",
         "docs": "/docs",
-        "health": "/health"
+        "health": "/health",
     }

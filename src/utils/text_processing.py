@@ -1,4 +1,5 @@
 """Text processing utilities"""
+
 from typing import List, Tuple
 import re
 import hashlib
@@ -48,23 +49,20 @@ def clean_text(text: str) -> str:
         return ""
 
     # Remove extra whitespace
-    text = re.sub(r'\s+', ' ', text)
+    text = re.sub(r"\s+", " ", text)
 
     # Remove control characters
-    text = re.sub(r'[\x00-\x1f\x7f-\x9f]', '', text)
+    text = re.sub(r"[\x00-\x1f\x7f-\x9f]", "", text)
 
     # Normalize quotes
     text = text.replace('"', '"').replace('"', '"')
-    text = text.replace(''', "'").replace(''', "'")
+    text = text.replace(""", "'").replace(""", "'")
 
     return text.strip()
 
 
 def chunk_text(
-    text: str,
-    chunk_size: int = None,
-    chunk_overlap: int = None,
-    doc_id: str = None
+    text: str, chunk_size: int = None, chunk_overlap: int = None, doc_id: str = None
 ) -> List[Tuple[int, str, int, int]]:
     """
     Split text into overlapping chunks
@@ -110,9 +108,11 @@ def chunk_text(
         chunks.append((chunk_idx, chunk_text, char_start, char_end))
 
         chunk_idx += 1
-        start_word += (chunk_size - chunk_overlap)
+        start_word += chunk_size - chunk_overlap
 
-    logger.info(f"Split document into {len(chunks)} chunks (chunk_size={chunk_size}, overlap={chunk_overlap})")
+    logger.info(
+        f"Split document into {len(chunks)} chunks (chunk_size={chunk_size}, overlap={chunk_overlap})"
+    )
     return chunks
 
 
@@ -126,7 +126,7 @@ def compute_hash(text: str) -> str:
     Returns:
         Hex digest of hash
     """
-    return hashlib.sha256(text.encode('utf-8')).hexdigest()
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
 def extract_keywords(text: str, max_keywords: int = 10) -> List[str]:
@@ -143,7 +143,7 @@ def extract_keywords(text: str, max_keywords: int = 10) -> List[str]:
     # Simple implementation: extract capitalized words
     # In production, use TF-IDF or proper keyword extraction
     words = text.split()
-    capitalized = [w.strip('.,!?;:') for w in words if w and w[0].isupper() and len(w) > 3]
+    capitalized = [w.strip(".,!?;:") for w in words if w and w[0].isupper() and len(w) > 3]
 
     # Remove duplicates and limit
     keywords = list(dict.fromkeys(capitalized))[:max_keywords]
@@ -163,4 +163,4 @@ def truncate_text(text: str, max_length: int = 500) -> str:
     """
     if len(text) <= max_length:
         return text
-    return text[:max_length-3] + "..."
+    return text[: max_length - 3] + "..."

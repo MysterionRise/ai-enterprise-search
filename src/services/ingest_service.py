@@ -1,4 +1,5 @@
 """Document ingestion service"""
+
 from typing import Optional
 from datetime import datetime
 import hashlib
@@ -10,16 +11,11 @@ from src.models.documents import (
     DocumentChunk,
     DocumentIngestRequest,
     IngestResponse,
-    DocumentMetadata
+    DocumentMetadata,
 )
 from src.services.opensearch_service import opensearch_service
 from src.services.embedding_service import embedding_service
-from src.utils.text_processing import (
-    detect_language,
-    clean_text,
-    chunk_text,
-    compute_hash
-)
+from src.utils.text_processing import detect_language, clean_text, chunk_text, compute_hash
 from src.utils.document_parser import document_parser
 from src.core.config import settings
 
@@ -71,9 +67,7 @@ class IngestService:
                 tags=request.tags,
                 hash=compute_hash(content),
                 indexed_at=datetime.utcnow(),
-                metadata=DocumentMetadata(
-                    custom_fields=request.metadata or {}
-                )
+                metadata=DocumentMetadata(custom_fields=request.metadata or {}),
             )
 
             # Index document
@@ -88,17 +82,12 @@ class IngestService:
                 doc_id=doc_id,
                 chunks_created=chunks_created,
                 status="success",
-                message=f"Document indexed with {chunks_created} chunks"
+                message=f"Document indexed with {chunks_created} chunks",
             )
 
         except Exception as e:
             logger.error(f"Ingestion failed: {e}", exc_info=True)
-            return IngestResponse(
-                doc_id="",
-                chunks_created=0,
-                status="error",
-                message=str(e)
-            )
+            return IngestResponse(doc_id="", chunks_created=0, status="error", message=str(e))
 
     async def ingest_file(
         self,
@@ -107,7 +96,7 @@ class IngestService:
         source_id: str,
         acl_allow: list[str],
         country_tags: list[str],
-        department: Optional[str]
+        department: Optional[str],
     ) -> IngestResponse:
         """
         Ingest a file upload
@@ -143,19 +132,14 @@ class IngestService:
                 acl_allow=acl_allow,
                 country_tags=country_tags,
                 department=department,
-                metadata=parsed["metadata"]
+                metadata=parsed["metadata"],
             )
 
             return await self.ingest_document(request)
 
         except Exception as e:
             logger.error(f"File ingestion failed: {e}", exc_info=True)
-            return IngestResponse(
-                doc_id="",
-                chunks_created=0,
-                status="error",
-                message=str(e)
-            )
+            return IngestResponse(doc_id="", chunks_created=0, status="error", message=str(e))
 
     async def delete_document(self, doc_id: str):
         """Delete a document and its chunks"""
@@ -197,7 +181,7 @@ class IngestService:
             document.body,
             chunk_size=settings.CHUNK_SIZE,
             chunk_overlap=settings.CHUNK_OVERLAP,
-            doc_id=document.doc_id
+            doc_id=document.doc_id,
         )
 
         if not chunks_data:
@@ -212,7 +196,9 @@ class IngestService:
 
         # Create chunk objects
         chunks = []
-        for (chunk_idx, chunk_text, char_start, char_end), embedding in zip(chunks_data, embeddings):
+        for (chunk_idx, chunk_text, char_start, char_end), embedding in zip(
+            chunks_data, embeddings
+        ):
             chunk = DocumentChunk(
                 chunk_id=f"{document.doc_id}-{chunk_idx}",
                 doc_id=document.doc_id,
@@ -231,7 +217,7 @@ class IngestService:
                 char_start=char_start,
                 char_end=char_end,
                 last_modified=document.last_modified,
-                indexed_at=datetime.utcnow()
+                indexed_at=datetime.utcnow(),
             )
             chunks.append(chunk.model_dump())
 

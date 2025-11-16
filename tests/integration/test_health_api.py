@@ -1,4 +1,5 @@
 """Integration tests for health check endpoints"""
+
 import pytest
 from fastapi import status
 
@@ -37,7 +38,7 @@ class TestHealthEndpoints:
         # Either HTML UI or JSON API info
         assert response.headers.get("content-type") in [
             "text/html; charset=utf-8",
-            "application/json"
+            "application/json",
         ]
 
     def test_metrics_endpoint(self, client):

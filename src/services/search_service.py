@@ -1,4 +1,5 @@
 """Search service with hybrid BM25 + k-NN retrieval"""
+
 from typing import List, Dict, Any, Optional
 from collections import defaultdict
 import time
@@ -48,7 +49,7 @@ class SearchService:
                 boost_recency=request.boost_recency,
                 boost_personalization=request.boost_personalization,
                 user_country=request.user_country,
-                user_department=request.user_department
+                user_department=request.user_department,
             )
         else:
             # BM25 only
@@ -57,15 +58,11 @@ class SearchService:
                 acl_filter=acl_filter,
                 filters=filters,
                 size=request.size,
-                offset=request.offset
+                offset=request.offset,
             )
 
         # Get facets
-        facets = await self._get_facets(
-            query=request.query,
-            acl_filter=acl_filter,
-            filters=filters
-        )
+        facets = await self._get_facets(query=request.query, acl_filter=acl_filter, filters=filters)
 
         took_ms = int((time.time() - start_time) * 1000)
 
@@ -77,19 +74,15 @@ class SearchService:
             facets=facets,
             applied_filters=self._extract_applied_filters(request),
             personalized=request.boost_personalization,
-            personalization_context={
-                "country": request.user_country,
-                "department": request.user_department
-            } if request.boost_personalization else None
+            personalization_context=(
+                {"country": request.user_country, "department": request.user_department}
+                if request.boost_personalization
+                else None
+            ),
         )
 
     async def _bm25_search(
-        self,
-        query: str,
-        acl_filter: Dict,
-        filters: List[Dict],
-        size: int,
-        offset: int
+        self, query: str, acl_filter: Dict, filters: List[Dict], size: int, offset: int
     ) -> tuple[List[SearchResult], int]:
         """Execute BM25 text search"""
         search_body = {
@@ -100,20 +93,17 @@ class SearchService:
                             "query": query,
                             "fields": ["title^3", "text^1"],
                             "type": "best_fields",
-                            "operator": "or"
+                            "operator": "or",
                         }
                     },
-                    "filter": [acl_filter] + filters
+                    "filter": [acl_filter] + filters,
                 }
             },
             "size": size,
             "from": offset,
             "highlight": {
-                "fields": {
-                    "title": {},
-                    "text": {"fragment_size": 200, "number_of_fragments": 3}
-                }
-            }
+                "fields": {"title": {}, "text": {"fragment_size": 200, "number_of_fragments": 3}}
+            },
         }
 
         response = self.os_client.search(index=self.chunks_index, body=search_body)
@@ -132,7 +122,7 @@ class SearchService:
         boost_recency: bool,
         boost_personalization: bool,
         user_country: Optional[str],
-        user_department: Optional[str]
+        user_department: Optional[str],
     ) -> tuple[List[SearchResult], int]:
         """Execute hybrid BM25 + k-NN search with RRF fusion"""
 
@@ -144,13 +134,13 @@ class SearchService:
                         "multi_match": {
                             "query": query,
                             "fields": ["title^3", "text^1"],
-                            "type": "best_fields"
+                            "type": "best_fields",
                         }
                     },
-                    "filter": [acl_filter] + filters
+                    "filter": [acl_filter] + filters,
                 }
             },
-            "size": size * 2  # Get more for fusion
+            "size": size * 2,  # Get more for fusion
         }
 
         bm25_response = self.os_client.search(index=self.chunks_index, body=bm25_body)
@@ -163,17 +153,10 @@ class SearchService:
             "size": size * 2,
             "query": {
                 "bool": {
-                    "must": {
-                        "knn": {
-                            "embedding": {
-                                "vector": query_vector,
-                                "k": size * 2
-                            }
-                        }
-                    },
-                    "filter": [acl_filter] + filters
+                    "must": {"knn": {"embedding": {"vector": query_vector, "k": size * 2}}},
+                    "filter": [acl_filter] + filters,
                 }
-            }
+            },
         }
 
         knn_response = self.os_client.search(index=self.chunks_index, body=knn_body)
@@ -190,7 +173,7 @@ class SearchService:
 
         # 5. Sort by score and paginate
         fused_results.sort(key=lambda x: x["_score"], reverse=True)
-        paginated = fused_results[offset:offset + size]
+        paginated = fused_results[offset : offset + size]
 
         # 6. Format results with highlights
         results = self._format_results({"hits": {"hits": paginated}})
@@ -198,12 +181,7 @@ class SearchService:
 
         return results, total
 
-    def _rrf_fusion(
-        self,
-        bm25_hits: List[Dict],
-        knn_hits: List[Dict],
-        k: int = 60
-    ) -> List[Dict]:
+    def _rrf_fusion(self, bm25_hits: List[Dict], knn_hits: List[Dict], k: int = 60) -> List[Dict]:
         """
         Reciprocal Rank Fusion
 
@@ -243,10 +221,7 @@ class SearchService:
         return fused
 
     def _apply_personalization_boost(
-        self,
-        results: List[Dict],
-        user_country: Optional[str],
-        user_department: Optional[str]
+        self, results: List[Dict], user_country: Optional[str], user_department: Optional[str]
     ) -> List[Dict]:
         """Apply personalization score boosts"""
         for hit in results:
@@ -272,12 +247,8 @@ class SearchService:
 
         return {
             "bool": {
-                "must": {
-                    "terms": {"acl_allow": user_groups}
-                },
-                "must_not": {
-                    "terms": {"acl_deny": user_groups}
-                }
+                "must": {"terms": {"acl_allow": user_groups}},
+                "must_not": {"terms": {"acl_deny": user_groups}},
             }
         }
 
@@ -343,17 +314,14 @@ class SearchService:
                 last_modified=source.get("last_modified"),
                 country_tags=source.get("country_tags", []),
                 department=source.get("department"),
-                highlights=highlights
+                highlights=highlights,
             )
             results.append(result)
 
         return results
 
     async def _get_facets(
-        self,
-        query: str,
-        acl_filter: Dict,
-        filters: List[Dict]
+        self, query: str, acl_filter: Dict, filters: List[Dict]
     ) -> List[FacetGroup]:
         """Get facets for filtering"""
         # Build aggregations query
@@ -362,15 +330,15 @@ class SearchService:
             "query": {
                 "bool": {
                     "must": {"multi_match": {"query": query, "fields": ["title", "text"]}},
-                    "filter": [acl_filter] + filters
+                    "filter": [acl_filter] + filters,
                 }
             },
             "aggs": {
                 "sources": {"terms": {"field": "source", "size": 20}},
                 "languages": {"terms": {"field": "language", "size": 10}},
                 "countries": {"terms": {"field": "country_tags", "size": 20}},
-                "content_types": {"terms": {"field": "content_type", "size": 10}}
-            }
+                "content_types": {"terms": {"field": "content_type", "size": 10}},
+            },
         }
 
         response = self.os_client.search(index=self.chunks_index, body=agg_body)
@@ -380,7 +348,7 @@ class SearchService:
             ("source", "sources"),
             ("language", "languages"),
             ("country", "countries"),
-            ("content_type", "content_types")
+            ("content_type", "content_types"),
         ]:
             buckets = response["aggregations"][agg_name]["buckets"]
             facets = [

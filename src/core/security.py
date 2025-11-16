@@ -1,4 +1,5 @@
 """Security utilities for authentication and authorization"""
+
 from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
@@ -134,11 +135,13 @@ def require_groups(required_groups: list[str]):
     Example:
         @app.get("/admin", dependencies=[Depends(require_groups(["admin"]))])
     """
+
     def _check_groups(user: TokenData = Security(get_current_user)) -> TokenData:
         if not check_permission(user, required_groups):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Requires membership in one of: {', '.join(required_groups)}"
+                detail=f"Requires membership in one of: {', '.join(required_groups)}",
             )
         return user
+
     return _check_groups

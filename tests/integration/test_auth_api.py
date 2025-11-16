@@ -1,4 +1,5 @@
 """Integration tests for authentication endpoints"""
+
 import pytest
 from fastapi import status
 
@@ -9,11 +10,7 @@ class TestAuthenticationEndpoints:
     def test_login_success(self, client):
         """Test successful login"""
         response = client.post(
-            "/api/v1/auth/login",
-            json={
-                "username": "admin",
-                "password": "password123"
-            }
+            "/api/v1/auth/login", json={"username": "admin", "password": "password123"}
         )
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
@@ -24,22 +21,14 @@ class TestAuthenticationEndpoints:
     def test_login_invalid_credentials(self, client):
         """Test login with wrong password"""
         response = client.post(
-            "/api/v1/auth/login",
-            json={
-                "username": "admin",
-                "password": "wrongpassword"
-            }
+            "/api/v1/auth/login", json={"username": "admin", "password": "wrongpassword"}
         )
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_login_nonexistent_user(self, client):
         """Test login with non-existent user"""
         response = client.post(
-            "/api/v1/auth/login",
-            json={
-                "username": "nonexistent",
-                "password": "password123"
-            }
+            "/api/v1/auth/login", json={"username": "nonexistent", "password": "password123"}
         )
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
@@ -48,10 +37,7 @@ class TestAuthenticationEndpoints:
         if not auth_headers:
             pytest.skip("Authentication not available")
 
-        response = client.get(
-            "/api/v1/auth/me",
-            headers=auth_headers
-        )
+        response = client.get("/api/v1/auth/me", headers=auth_headers)
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert "username" in data
@@ -65,10 +51,7 @@ class TestAuthenticationEndpoints:
 
     def test_get_current_user_invalid_token(self, client):
         """Test with invalid token"""
-        response = client.get(
-            "/api/v1/auth/me",
-            headers={"Authorization": "Bearer invalid_token"}
-        )
+        response = client.get("/api/v1/auth/me", headers={"Authorization": "Bearer invalid_token"})
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_refresh_token(self, client, auth_headers):
@@ -76,10 +59,7 @@ class TestAuthenticationEndpoints:
         if not auth_headers:
             pytest.skip("Authentication not available")
 
-        response = client.post(
-            "/api/v1/auth/refresh",
-            headers=auth_headers
-        )
+        response = client.post("/api/v1/auth/refresh", headers=auth_headers)
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert "access_token" in data
@@ -88,6 +68,7 @@ class TestAuthenticationEndpoints:
     def test_register_new_user(self, client):
         """Test user registration"""
         import random
+
         username = f"testuser_{random.randint(1000, 9999)}"
 
         response = client.post(
@@ -98,8 +79,8 @@ class TestAuthenticationEndpoints:
                 "password": "testpassword123",
                 "full_name": "Test User",
                 "department": "Engineering",
-                "country": "US"
-            }
+                "country": "US",
+            },
         )
         # Might fail if user exists, that's ok for integration test
         if response.status_code == status.HTTP_201_CREATED:
@@ -114,7 +95,7 @@ class TestAuthenticationEndpoints:
             json={
                 "username": "admin",  # Already exists
                 "email": "new@test.com",
-                "password": "testpassword123"
-            }
+                "password": "testpassword123",
+            },
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST

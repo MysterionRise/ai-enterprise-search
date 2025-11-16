@@ -1,4 +1,5 @@
 """Embedding service using sentence-transformers (bge-m3)"""
+
 from typing import List, Union
 import numpy as np
 from sentence_transformers import SentenceTransformer
@@ -25,10 +26,7 @@ class EmbeddingService:
         """Lazy load the embedding model"""
         if self._model is None:
             logger.info(f"Loading embedding model: {self.model_name}")
-            self._model = SentenceTransformer(
-                self.model_name,
-                device=self.device
-            )
+            self._model = SentenceTransformer(self.model_name, device=self.device)
             logger.info(f"Model loaded on device: {self.device}")
         return self._model
 
@@ -42,11 +40,7 @@ class EmbeddingService:
         Returns:
             Embedding vector as list of floats
         """
-        embedding = self.model.encode(
-            text,
-            normalize_embeddings=True,
-            show_progress_bar=False
-        )
+        embedding = self.model.encode(text, normalize_embeddings=True, show_progress_bar=False)
         return embedding.tolist()
 
     def embed_batch(self, texts: List[str]) -> List[List[float]]:
@@ -69,7 +63,7 @@ class EmbeddingService:
             batch_size=self.batch_size,
             normalize_embeddings=True,
             show_progress_bar=True if len(texts) > 100 else False,
-            convert_to_numpy=True
+            convert_to_numpy=True,
         )
 
         return embeddings.tolist()
@@ -114,7 +108,7 @@ class EmbeddingService:
             "device": self.device,
             "dimension": settings.EMBEDDING_DIMENSION,
             "batch_size": self.batch_size,
-            "is_loaded": self._model is not None
+            "is_loaded": self._model is not None,
         }
 
 

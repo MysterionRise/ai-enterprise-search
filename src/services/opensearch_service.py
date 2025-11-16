@@ -1,4 +1,5 @@
 """OpenSearch client and index management"""
+
 from typing import Optional, Dict, Any, List
 from opensearchpy import OpenSearch, helpers
 import logging
@@ -14,16 +15,15 @@ class OpenSearchService:
     def __init__(self):
         """Initialize OpenSearch client"""
         self.client = OpenSearch(
-            hosts=[{
-                "host": settings.OPENSEARCH_HOST,
-                "port": settings.OPENSEARCH_PORT
-            }],
-            http_auth=(settings.OPENSEARCH_USER, settings.OPENSEARCH_PASSWORD)
-            if settings.OPENSEARCH_USER
-            else None,
+            hosts=[{"host": settings.OPENSEARCH_HOST, "port": settings.OPENSEARCH_PORT}],
+            http_auth=(
+                (settings.OPENSEARCH_USER, settings.OPENSEARCH_PASSWORD)
+                if settings.OPENSEARCH_USER
+                else None
+            ),
             use_ssl=settings.OPENSEARCH_USE_SSL,
             verify_certs=settings.OPENSEARCH_VERIFY_CERTS,
-            timeout=settings.OPENSEARCH_TIMEOUT
+            timeout=settings.OPENSEARCH_TIMEOUT,
         )
 
     def create_documents_index(self, index_name: Optional[str] = None) -> bool:
@@ -43,23 +43,17 @@ class OpenSearchService:
                 },
                 "analysis": {
                     "filter": {
-                        "english_stop": {
-                            "type": "stop",
-                            "stopwords": "_english_"
-                        },
-                        "english_stemmer": {
-                            "type": "stemmer",
-                            "language": "english"
-                        },
+                        "english_stop": {"type": "stop", "stopwords": "_english_"},
+                        "english_stemmer": {"type": "stemmer", "language": "english"},
                         "synonym_filter": {
                             "type": "synonym",
                             "synonyms": [
                                 "wfh, work from home, remote work",
                                 "hr, human resources",
                                 "pto, paid time off, vacation, leave",
-                                "it, information technology"
-                            ]
-                        }
+                                "it, information technology",
+                            ],
+                        },
                     },
                     "analyzer": {
                         "default_analyzer": {
@@ -69,11 +63,11 @@ class OpenSearchService:
                                 "lowercase",
                                 "english_stop",
                                 "english_stemmer",
-                                "synonym_filter"
-                            ]
+                                "synonym_filter",
+                            ],
                         }
-                    }
-                }
+                    },
+                },
             },
             "mappings": {
                 "properties": {
@@ -83,38 +77,30 @@ class OpenSearchService:
                     "title": {
                         "type": "text",
                         "analyzer": "default_analyzer",
-                        "fields": {"keyword": {"type": "keyword"}}
+                        "fields": {"keyword": {"type": "keyword"}},
                     },
-                    "body": {
-                        "type": "text",
-                        "analyzer": "default_analyzer"
-                    },
+                    "body": {"type": "text", "analyzer": "default_analyzer"},
                     "url": {"type": "keyword"},
                     "content_type": {"type": "keyword"},
                     "language": {"type": "keyword"},
-
                     # Access control
                     "acl_allow": {"type": "keyword"},
                     "acl_deny": {"type": "keyword"},
-
                     # Personalization
                     "country_tags": {"type": "keyword"},
                     "department": {"type": "keyword"},
                     "audience": {"type": "keyword"},
-
                     # Metadata
                     "tags": {"type": "keyword"},
                     "categories": {"type": "keyword"},
                     "hash": {"type": "keyword"},
-
                     # Timestamps
                     "last_modified": {"type": "date"},
                     "indexed_at": {"type": "date"},
-
                     # Extended metadata
-                    "metadata": {"type": "object", "enabled": False}
+                    "metadata": {"type": "object", "enabled": False},
                 }
-            }
+            },
         }
 
         if self.client.indices.exists(index=index_name):
@@ -141,44 +127,28 @@ class OpenSearchService:
                     "number_of_replicas": 1,
                     "refresh_interval": "30s",
                     "knn": True,  # Enable k-NN
-                    "knn.algo_param.ef_search": 100
+                    "knn.algo_param.ef_search": 100,
                 },
-                "analysis": {
-                    "analyzer": {
-                        "default": {
-                            "type": "standard"
-                        }
-                    }
-                }
+                "analysis": {"analyzer": {"default": {"type": "standard"}}},
             },
             "mappings": {
                 "properties": {
                     "chunk_id": {"type": "keyword"},
                     "doc_id": {"type": "keyword"},
                     "chunk_idx": {"type": "integer"},
-                    "text": {
-                        "type": "text",
-                        "analyzer": "default"
-                    },
-
+                    "text": {"type": "text", "analyzer": "default"},
                     # Copy from parent document
                     "source": {"type": "keyword"},
-                    "title": {
-                        "type": "text",
-                        "fields": {"keyword": {"type": "keyword"}}
-                    },
+                    "title": {"type": "text", "fields": {"keyword": {"type": "keyword"}}},
                     "url": {"type": "keyword"},
                     "language": {"type": "keyword"},
                     "content_type": {"type": "keyword"},
-
                     # Access control
                     "acl_allow": {"type": "keyword"},
                     "acl_deny": {"type": "keyword"},
-
                     # Personalization
                     "country_tags": {"type": "keyword"},
                     "department": {"type": "keyword"},
-
                     # Vector embedding for semantic search
                     "embedding": {
                         "type": "knn_vector",
@@ -187,22 +157,17 @@ class OpenSearchService:
                             "name": "hnsw",
                             "space_type": "cosinesimil",
                             "engine": "faiss",
-                            "parameters": {
-                                "ef_construction": 256,
-                                "m": 16
-                            }
-                        }
+                            "parameters": {"ef_construction": 256, "m": 16},
+                        },
                     },
-
                     # Context
                     "char_start": {"type": "integer"},
                     "char_end": {"type": "integer"},
-
                     # Timestamps
                     "last_modified": {"type": "date"},
-                    "indexed_at": {"type": "date"}
+                    "indexed_at": {"type": "date"},
                 }
-            }
+            },
         }
 
         if self.client.indices.exists(index=index_name):
@@ -219,7 +184,9 @@ class OpenSearchService:
         self.create_chunks_index()
         logger.info("All indices initialized")
 
-    def bulk_index_documents(self, documents: List[Dict[str, Any]], index_name: Optional[str] = None):
+    def bulk_index_documents(
+        self, documents: List[Dict[str, Any]], index_name: Optional[str] = None
+    ):
         """
         Bulk index documents
 
@@ -230,12 +197,7 @@ class OpenSearchService:
         index_name = index_name or settings.DOCUMENTS_INDEX
 
         actions = [
-            {
-                "_index": index_name,
-                "_id": doc["doc_id"],
-                "_source": doc
-            }
-            for doc in documents
+            {"_index": index_name, "_id": doc["doc_id"], "_source": doc} for doc in documents
         ]
 
         success, failed = helpers.bulk(self.client, actions, stats_only=True)
@@ -253,12 +215,7 @@ class OpenSearchService:
         index_name = index_name or settings.CHUNKS_INDEX
 
         actions = [
-            {
-                "_index": index_name,
-                "_id": chunk["chunk_id"],
-                "_source": chunk
-            }
-            for chunk in chunks
+            {"_index": index_name, "_id": chunk["chunk_id"], "_source": chunk} for chunk in chunks
         ]
 
         success, failed = helpers.bulk(self.client, actions, stats_only=True)

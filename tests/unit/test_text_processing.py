@@ -1,4 +1,5 @@
 """Unit tests for text processing utilities"""
+
 import pytest
 from src.utils.text_processing import (
     detect_language,
@@ -6,7 +7,7 @@ from src.utils.text_processing import (
     chunk_text,
     compute_hash,
     extract_keywords,
-    truncate_text
+    truncate_text,
 )
 
 
@@ -43,9 +44,9 @@ class TestTextCleaning:
         assert clean_text("") == ""
 
     def test_clean_normalize_quotes(self):
-        text = '"Test" with \'fancy\' quotes'
+        text = "\"Test\" with 'fancy' quotes"
         cleaned = clean_text(text)
-        assert 'Test' in cleaned or 'fancy' in cleaned
+        assert "Test" in cleaned or "fancy" in cleaned
 
 
 class TestTextChunking:

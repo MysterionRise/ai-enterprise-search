@@ -1,4 +1,5 @@
 """Authentication endpoints"""
+
 from datetime import timedelta
 from fastapi import APIRouter, HTTPException, status, Security
 from typing import Annotated
@@ -9,7 +10,7 @@ from src.core.security import (
     verify_password,
     get_password_hash,
     create_access_token,
-    get_current_user
+    get_current_user,
 )
 from src.core.database import get_user_by_username, create_user, get_user_by_email
 
@@ -50,8 +51,7 @@ async def login(credentials: LoginRequest):
     # Check if user is active
     if not user_record.get("is_active", True):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="User account is inactive"
+            status_code=status.HTTP_403_FORBIDDEN, detail="User account is inactive"
         )
 
     # Create access token with user context
@@ -67,7 +67,7 @@ async def login(credentials: LoginRequest):
     return Token(
         access_token=access_token,
         token_type="bearer",
-        expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+        expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )
 
 
@@ -83,16 +83,14 @@ async def register(user_data: UserCreate):
     existing_user = get_user_by_username(user_data.username)
     if existing_user:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Username already registered"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Username already registered"
         )
 
     # Check if email already exists
     existing_email = get_user_by_email(user_data.email)
     if existing_email:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered"
         )
 
     # Hash password
@@ -109,7 +107,7 @@ async def register(user_data: UserCreate):
         full_name=user_data.full_name,
         groups=groups,
         department=user_data.department,
-        country=user_data.country
+        country=user_data.country,
     )
 
     return User(
@@ -122,7 +120,7 @@ async def register(user_data: UserCreate):
         country=user_record["country"],
         created_at=user_record["created_at"],
         is_active=True,
-        is_superuser=False
+        is_superuser=False,
     )
 
 
@@ -138,10 +136,7 @@ async def get_current_user_info(current_user: Annotated[TokenData, Security(get_
     user_record = get_user_by_username(current_user.username)
 
     if not user_record:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
     return User(
         id=user_record["id"],
@@ -153,7 +148,7 @@ async def get_current_user_info(current_user: Annotated[TokenData, Security(get_
         country=user_record.get("country"),
         created_at=user_record.get("created_at"),
         is_active=user_record.get("is_active", True),
-        is_superuser=user_record.get("is_superuser", False)
+        is_superuser=user_record.get("is_superuser", False),
     )
 
 
@@ -176,5 +171,5 @@ async def refresh_token(current_user: Annotated[TokenData, Security(get_current_
     return Token(
         access_token=access_token,
         token_type="bearer",
-        expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+        expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )

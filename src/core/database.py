@@ -1,4 +1,5 @@
 """Database connection utilities"""
+
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from contextlib import contextmanager
@@ -137,8 +138,7 @@ def create_user(
     """
     with db.get_cursor() as cursor:
         cursor.execute(
-            query,
-            (username, email, hashed_password, full_name, groups, department, country)
+            query, (username, email, hashed_password, full_name, groups, department, country)
         )
         return cursor.fetchone()
 
@@ -156,8 +156,8 @@ def log_search_query(
         VALUES (%s, %s, %s, %s, %s)
     """
     import json
+
     with db.get_cursor() as cursor:
         cursor.execute(
-            query,
-            (query_text, username, user_groups, json.dumps(filters or {}), results_count)
+            query, (query_text, username, user_groups, json.dumps(filters or {}), results_count)
         )

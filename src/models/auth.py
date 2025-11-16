@@ -1,4 +1,5 @@
 """Authentication and user models"""
+
 from datetime import datetime
 from typing import List, Optional
 from pydantic import BaseModel, Field, EmailStr
@@ -6,6 +7,7 @@ from pydantic import BaseModel, Field, EmailStr
 
 class User(BaseModel):
     """User model for responses (no password)"""
+
     id: Optional[int] = None
     username: str = Field(..., min_length=3, max_length=100)
     email: EmailStr
@@ -25,18 +27,20 @@ class User(BaseModel):
                 "full_name": "John Doe",
                 "groups": ["all-employees", "uk-hr"],
                 "department": "HR",
-                "country": "UK"
+                "country": "UK",
             }
         }
 
 
 class UserInDB(User):
     """User model with hashed password for database"""
+
     hashed_password: str
 
 
 class UserCreate(BaseModel):
     """User creation request"""
+
     username: str = Field(..., min_length=3, max_length=100)
     email: EmailStr
     password: str = Field(..., min_length=8)
@@ -48,6 +52,7 @@ class UserCreate(BaseModel):
 
 class Token(BaseModel):
     """JWT token response"""
+
     access_token: str
     token_type: str = "bearer"
     expires_in: int = Field(..., description="Token expiration in seconds")
@@ -55,6 +60,7 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     """Data encoded in JWT token"""
+
     username: str
     groups: List[str] = Field(default_factory=list)
     department: Optional[str] = None
@@ -64,13 +70,9 @@ class TokenData(BaseModel):
 
 class LoginRequest(BaseModel):
     """Login credentials"""
+
     username: str
     password: str
 
     class Config:
-        json_schema_extra = {
-            "example": {
-                "username": "john.doe",
-                "password": "password123"
-            }
-        }
+        json_schema_extra = {"example": {"username": "john.doe", "password": "password123"}}

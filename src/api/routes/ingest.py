@@ -1,4 +1,5 @@
 """Document ingestion endpoints"""
+
 from fastapi import APIRouter, Security, HTTPException, UploadFile, File, Form
 from typing import Annotated, Optional
 import logging
@@ -14,8 +15,7 @@ logger = logging.getLogger(__name__)
 
 @router.post("/document", response_model=IngestResponse)
 async def ingest_document(
-    request: DocumentIngestRequest,
-    current_user: Annotated[TokenData, Security(get_current_user)]
+    request: DocumentIngestRequest, current_user: Annotated[TokenData, Security(get_current_user)]
 ):
     """
     Ingest a document from raw text/content
@@ -46,7 +46,7 @@ async def upload_file(
     acl_allow: str = Form("all-employees"),
     country_tags: Optional[str] = Form(None),
     department: Optional[str] = Form(None),
-    current_user: Annotated[TokenData, Security(get_current_user)] = None
+    current_user: Annotated[TokenData, Security(get_current_user)] = None,
 ):
     """
     Upload and ingest a file (PDF, DOCX, etc.)
@@ -71,7 +71,7 @@ async def upload_file(
             source_id=source_id or file.filename,
             acl_allow=acl_list,
             country_tags=country_list,
-            department=department
+            department=department,
         )
         return result
     except Exception as e:
@@ -81,8 +81,7 @@ async def upload_file(
 
 @router.delete("/document/{doc_id}")
 async def delete_document(
-    doc_id: str,
-    current_user: Annotated[TokenData, Security(get_current_user)]
+    doc_id: str, current_user: Annotated[TokenData, Security(get_current_user)]
 ):
     """
     Delete a document and its chunks from the index
@@ -100,8 +99,7 @@ async def delete_document(
 
 @router.post("/reindex/{doc_id}", response_model=IngestResponse)
 async def reindex_document(
-    doc_id: str,
-    current_user: Annotated[TokenData, Security(get_current_user)]
+    doc_id: str, current_user: Annotated[TokenData, Security(get_current_user)]
 ):
     """
     Reindex an existing document

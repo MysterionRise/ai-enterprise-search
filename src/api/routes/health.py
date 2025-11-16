@@ -1,4 +1,5 @@
 """Health check endpoints"""
+
 from fastapi import APIRouter, status
 from pydantic import BaseModel
 from datetime import datetime
@@ -12,6 +13,7 @@ router = APIRouter()
 
 class HealthStatus(BaseModel):
     """Health check response"""
+
     status: str
     timestamp: datetime
     version: str
@@ -39,7 +41,7 @@ async def health_check():
             database=settings.POSTGRES_DB,
             user=settings.POSTGRES_USER,
             password=settings.POSTGRES_PASSWORD,
-            connect_timeout=5
+            connect_timeout=5,
         )
         conn.close()
         services["postgres"] = "healthy"
@@ -50,12 +52,14 @@ async def health_check():
     try:
         es = OpenSearch(
             hosts=[{"host": settings.OPENSEARCH_HOST, "port": settings.OPENSEARCH_PORT}],
-            http_auth=(settings.OPENSEARCH_USER, settings.OPENSEARCH_PASSWORD)
-            if settings.OPENSEARCH_USER
-            else None,
+            http_auth=(
+                (settings.OPENSEARCH_USER, settings.OPENSEARCH_PASSWORD)
+                if settings.OPENSEARCH_USER
+                else None
+            ),
             use_ssl=settings.OPENSEARCH_USE_SSL,
             verify_certs=settings.OPENSEARCH_VERIFY_CERTS,
-            timeout=5
+            timeout=5,
         )
         health = es.cluster.health()
         services["opensearch"] = health["status"]
@@ -65,6 +69,7 @@ async def health_check():
     # Check Redis
     try:
         import redis
+
         r = redis.from_url(settings.redis_url, socket_connect_timeout=5)
         r.ping()
         services["redis"] = "healthy"
@@ -72,15 +77,17 @@ async def health_check():
         services["redis"] = f"unhealthy: {str(e)}"
 
     # Overall status
-    overall_status = "healthy" if all(
-        s in ["healthy", "green", "yellow"] for s in services.values()
-    ) else "degraded"
+    overall_status = (
+        "healthy"
+        if all(s in ["healthy", "green", "yellow"] for s in services.values())
+        else "degraded"
+    )
 
     return HealthStatus(
         status=overall_status,
         timestamp=datetime.utcnow(),
         version=settings.APP_VERSION,
-        services=services
+        services=services,
     )
 
 

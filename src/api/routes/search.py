@@ -1,4 +1,5 @@
 """Search endpoints"""
+
 from fastapi import APIRouter, Security, HTTPException
 from typing import Annotated
 import logging
@@ -15,8 +16,7 @@ logger = logging.getLogger(__name__)
 
 @router.post("/query", response_model=SearchResponse)
 async def search(
-    request: SearchRequest,
-    current_user: Annotated[TokenData, Security(get_current_user)]
+    request: SearchRequest, current_user: Annotated[TokenData, Security(get_current_user)]
 ):
     """
     Execute hybrid search query with personalization
@@ -47,7 +47,7 @@ async def search(
                 username=current_user.username,
                 user_groups=current_user.groups,
                 filters=request.filters.dict() if request.filters else {},
-                results_count=response.total
+                results_count=response.total,
             )
         except Exception as e:
             logger.warning(f"Failed to log search query: {e}")
@@ -61,8 +61,7 @@ async def search(
 
 @router.post("/suggest", response_model=SuggestResponse)
 async def suggest(
-    request: SuggestRequest,
-    current_user: Annotated[TokenData, Security(get_current_user)]
+    request: SuggestRequest, current_user: Annotated[TokenData, Security(get_current_user)]
 ):
     """
     Get autocomplete suggestions for search queries
@@ -73,10 +72,7 @@ async def suggest(
         search_service = SearchService()
         suggestions = await search_service.get_suggestions(request.query, request.size)
 
-        return SuggestResponse(
-            query=request.query,
-            suggestions=suggestions
-        )
+        return SuggestResponse(query=request.query, suggestions=suggestions)
     except Exception as e:
         logger.error(f"Suggestion error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Suggestion failed: {str(e)}")
@@ -84,8 +80,7 @@ async def suggest(
 
 @router.get("/popular")
 async def get_popular_queries(
-    limit: int = 10,
-    current_user: Annotated[TokenData, Security(get_current_user)] = None
+    limit: int = 10, current_user: Annotated[TokenData, Security(get_current_user)] = None
 ):
     """
     Get popular search queries

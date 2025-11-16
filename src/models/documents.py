@@ -1,4 +1,5 @@
 """Document and chunk data models"""
+
 from datetime import datetime
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
@@ -6,6 +7,7 @@ from pydantic import BaseModel, Field
 
 class DocumentMetadata(BaseModel):
     """Extended metadata for documents"""
+
     author: Optional[str] = None
     created_date: Optional[datetime] = None
     modified_date: Optional[datetime] = None
@@ -17,6 +19,7 @@ class DocumentMetadata(BaseModel):
 
 class Document(BaseModel):
     """Main document model representing a searchable document"""
+
     doc_id: str = Field(..., description="Unique document identifier")
     source: str = Field(..., description="Source system (servicenow, sharepoint, etc.)")
     source_id: str = Field(..., description="ID in the source system")
@@ -28,8 +31,7 @@ class Document(BaseModel):
 
     # Access control
     acl_allow: List[str] = Field(
-        default_factory=lambda: ["all-employees"],
-        description="Groups/roles allowed to access"
+        default_factory=lambda: ["all-employees"], description="Groups/roles allowed to access"
     )
     acl_deny: List[str] = Field(default_factory=list, description="Groups/roles denied access")
 
@@ -62,13 +64,14 @@ class Document(BaseModel):
                 "acl_allow": ["all-employees", "uk-hr"],
                 "country_tags": ["UK"],
                 "department": "HR",
-                "tags": ["time-off", "vacation", "leave"]
+                "tags": ["time-off", "vacation", "leave"],
             }
         }
 
 
 class DocumentChunk(BaseModel):
     """A chunk of a document for embedding and retrieval"""
+
     chunk_id: str = Field(..., description="Unique chunk identifier")
     doc_id: str = Field(..., description="Parent document ID")
     chunk_idx: int = Field(..., description="Chunk sequence number")
@@ -111,13 +114,14 @@ class DocumentChunk(BaseModel):
                 "title": "How to Request Time Off",
                 "language": "en",
                 "acl_allow": ["all-employees", "uk-hr"],
-                "country_tags": ["UK"]
+                "country_tags": ["UK"],
             }
         }
 
 
 class DocumentIngestRequest(BaseModel):
     """Request to ingest a new document"""
+
     source: str
     source_id: str
     title: str
@@ -135,6 +139,7 @@ class DocumentIngestRequest(BaseModel):
 
 class IngestResponse(BaseModel):
     """Response after document ingestion"""
+
     doc_id: str
     chunks_created: int
     status: str = "success"

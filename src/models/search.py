@@ -1,4 +1,5 @@
 """Search request and response models"""
+
 from datetime import datetime
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
@@ -6,6 +7,7 @@ from pydantic import BaseModel, Field
 
 class SearchFilters(BaseModel):
     """Filters for search queries"""
+
     sources: Optional[List[str]] = Field(None, description="Filter by source systems")
     languages: Optional[List[str]] = Field(None, description="Filter by language codes")
     countries: Optional[List[str]] = Field(None, description="Filter by country tags")
@@ -18,6 +20,7 @@ class SearchFilters(BaseModel):
 
 class SearchRequest(BaseModel):
     """Search request with query and options"""
+
     query: str = Field(..., min_length=1, description="Search query text")
     filters: Optional[SearchFilters] = Field(None, description="Search filters")
     size: int = Field(default=10, ge=1, le=100, description="Number of results to return")
@@ -40,18 +43,16 @@ class SearchRequest(BaseModel):
         json_schema_extra = {
             "example": {
                 "query": "how to request time off",
-                "filters": {
-                    "sources": ["servicenow"],
-                    "countries": ["UK"]
-                },
+                "filters": {"sources": ["servicenow"], "countries": ["UK"]},
                 "size": 10,
-                "use_hybrid": True
+                "use_hybrid": True,
             }
         }
 
 
 class SearchResult(BaseModel):
     """A single search result"""
+
     doc_id: str
     chunk_id: Optional[str] = None
     source: str
@@ -71,8 +72,7 @@ class SearchResult(BaseModel):
 
     # Highlighting
     highlights: Dict[str, List[str]] = Field(
-        default_factory=dict,
-        description="Highlighted field matches"
+        default_factory=dict, description="Highlighted field matches"
     )
 
     # Metadata badges
@@ -91,13 +91,14 @@ class SearchResult(BaseModel):
                 "content_type": "text/html",
                 "language": "en",
                 "country_tags": ["UK"],
-                "is_official": True
+                "is_official": True,
             }
         }
 
 
 class Facet(BaseModel):
     """Facet for result filtering"""
+
     name: str
     value: str
     count: int
@@ -105,12 +106,14 @@ class Facet(BaseModel):
 
 class FacetGroup(BaseModel):
     """Group of facets for a field"""
+
     field: str
     facets: List[Facet]
 
 
 class SearchResponse(BaseModel):
     """Search response with results and metadata"""
+
     query: str
     results: List[SearchResult]
     total: int = Field(..., description="Total number of matching documents")
@@ -137,21 +140,20 @@ class SearchResponse(BaseModel):
                 "total": 42,
                 "took_ms": 127,
                 "personalized": True,
-                "personalization_context": {
-                    "country": "UK",
-                    "department": "HR"
-                }
+                "personalization_context": {"country": "UK", "department": "HR"},
             }
         }
 
 
 class SuggestRequest(BaseModel):
     """Autocomplete suggestion request"""
+
     query: str = Field(..., min_length=1, description="Partial query text")
     size: int = Field(default=5, ge=1, le=20, description="Number of suggestions")
 
 
 class SuggestResponse(BaseModel):
     """Autocomplete suggestions"""
+
     query: str
     suggestions: List[str]

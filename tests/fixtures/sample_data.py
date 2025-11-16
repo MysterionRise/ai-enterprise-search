@@ -11,7 +11,7 @@ SAMPLE_DOCUMENTS = [
         "acl_allow": ["all-employees"],
         "country_tags": ["US"],
         "department": "Engineering",
-        "tags": ["test", "search"]
+        "tags": ["test", "search"],
     },
     {
         "source": "test",
@@ -22,8 +22,8 @@ SAMPLE_DOCUMENTS = [
         "acl_allow": ["all-employees", "uk-hr"],
         "country_tags": ["UK"],
         "department": "HR",
-        "tags": ["policy", "hr", "remote-work"]
-    }
+        "tags": ["policy", "hr", "remote-work"],
+    },
 ]
 
 # Sample users
@@ -34,7 +34,7 @@ SAMPLE_USERS = [
         "password": "testpass123",
         "groups": ["all-employees"],
         "department": "Engineering",
-        "country": "US"
+        "country": "US",
     },
     {
         "username": "testuser2",
@@ -42,6 +42,6 @@ SAMPLE_USERS = [
         "password": "testpass123",
         "groups": ["all-employees", "uk-hr"],
         "department": "HR",
-        "country": "UK"
-    }
+        "country": "UK",
+    },
 ]

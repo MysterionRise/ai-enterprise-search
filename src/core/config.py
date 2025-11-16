@@ -1,4 +1,5 @@
 """Application configuration using Pydantic Settings"""
+
 from typing import List, Optional
 from pydantic import Field
 from pydantic_settings import BaseSettings
@@ -95,15 +96,30 @@ class Settings(BaseSettings):
     # PII Detection
     ENABLE_PII_DETECTION: bool = True
     PII_ENTITIES: List[str] = [
-        "PERSON", "EMAIL_ADDRESS", "PHONE_NUMBER", "CREDIT_CARD",
-        "SSN", "PASSPORT", "IBAN_CODE"
+        "PERSON",
+        "EMAIL_ADDRESS",
+        "PHONE_NUMBER",
+        "CREDIT_CARD",
+        "SSN",
+        "PASSPORT",
+        "IBAN_CODE",
     ]
 
     # File Upload
     MAX_UPLOAD_SIZE: int = 50 * 1024 * 1024  # 50MB
     ALLOWED_EXTENSIONS: List[str] = [
-        ".pdf", ".docx", ".doc", ".pptx", ".ppt", ".xlsx", ".xls",
-        ".txt", ".md", ".html", ".htm", ".rtf"
+        ".pdf",
+        ".docx",
+        ".doc",
+        ".pptx",
+        ".ppt",
+        ".xlsx",
+        ".xls",
+        ".txt",
+        ".md",
+        ".html",
+        ".htm",
+        ".rtf",
     ]
 
     # CORS

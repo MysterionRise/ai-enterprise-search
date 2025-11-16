@@ -1,4 +1,5 @@
 """Test configuration and utilities"""
+
 import os
 import pytest
 

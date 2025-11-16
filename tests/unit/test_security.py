@@ -1,4 +1,5 @@
 """Unit tests for security utilities"""
+
 import pytest
 from datetime import timedelta
 from src.core.security import (
@@ -6,7 +7,7 @@ from src.core.security import (
     get_password_hash,
     create_access_token,
     decode_token,
-    check_permission
+    check_permission,
 )
 from src.models.auth import TokenData
 from fastapi import HTTPException
@@ -60,12 +61,7 @@ class TestJWTTokens:
     def test_decode_valid_token(self):
         username = "testuser"
         groups = ["users", "admins"]
-        data = {
-            "sub": username,
-            "groups": groups,
-            "department": "Engineering",
-            "country": "US"
-        }
+        data = {"sub": username, "groups": groups, "department": "Engineering", "country": "US"}
         token = create_access_token(data)
 
         decoded = decode_token(token)
@@ -94,49 +90,28 @@ class TestPermissionChecking:
 
     def test_user_has_required_group(self):
         user = TokenData(
-            username="testuser",
-            groups=["users", "admins"],
-            department=None,
-            country=None
+            username="testuser", groups=["users", "admins"], department=None, country=None
         )
         required = ["admins"]
         assert check_permission(user, required) is True
 
     def test_user_missing_required_group(self):
-        user = TokenData(
-            username="testuser",
-            groups=["users"],
-            department=None,
-            country=None
-        )
+        user = TokenData(username="testuser", groups=["users"], department=None, country=None)
         required = ["admins"]
         assert check_permission(user, required) is False
 
     def test_user_has_one_of_multiple_required_groups(self):
         user = TokenData(
-            username="testuser",
-            groups=["users", "developers"],
-            department=None,
-            country=None
+            username="testuser", groups=["users", "developers"], department=None, country=None
         )
         required = ["admins", "developers", "managers"]
         assert check_permission(user, required) is True
 
     def test_empty_required_groups_always_passes(self):
-        user = TokenData(
-            username="testuser",
-            groups=["users"],
-            department=None,
-            country=None
-        )
+        user = TokenData(username="testuser", groups=["users"], department=None, country=None)
         assert check_permission(user, []) is True
 
     def test_user_with_no_groups(self):
-        user = TokenData(
-            username="testuser",
-            groups=[],
-            department=None,
-            country=None
-        )
+        user = TokenData(username="testuser", groups=[], department=None, country=None)
         required = ["admins"]
         assert check_permission(user, required) is False
