@@ -13,10 +13,7 @@ from src.models.auth import TokenData
 # Password hashing
 # Configure bcrypt with explicit truncation handling for passwords > 72 bytes
 pwd_context = CryptContext(
-    schemes=["bcrypt"],
-    deprecated="auto",
-    bcrypt__default_rounds=12,
-    bcrypt__default_ident="2b"
+    schemes=["bcrypt"], deprecated="auto", bcrypt__default_rounds=12, bcrypt__default_ident="2b"
 )
 
 # JWT token security
@@ -26,14 +23,14 @@ security = HTTPBearer()
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a password against its hash"""
     # Truncate to 72 bytes if needed (bcrypt limitation)
-    password_bytes = plain_password.encode('utf-8')[:72].decode('utf-8', errors='ignore')
+    password_bytes = plain_password.encode("utf-8")[:72].decode("utf-8", errors="ignore")
     return pwd_context.verify(password_bytes, hashed_password)
 
 
 def get_password_hash(password: str) -> str:
     """Hash a password for storage"""
     # Truncate to 72 bytes if needed (bcrypt limitation)
-    password_bytes = password.encode('utf-8')[:72].decode('utf-8', errors='ignore')
+    password_bytes = password.encode("utf-8")[:72].decode("utf-8", errors="ignore")
     return pwd_context.hash(password_bytes)
 
 
