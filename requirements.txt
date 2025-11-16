@@ -20,6 +20,7 @@ kombu==5.3.4
 # Auth & Security
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
 python-dotenv==1.0.0
 
 # Document Processing
