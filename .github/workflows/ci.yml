@@ -217,21 +217,21 @@ jobs:
 
     - name: Set up Docker Compose
       run: |
-        docker-compose --version
+        docker compose version
 
     - name: Start services
       run: |
         # Start only essential services for testing
-        docker-compose up -d opensearch postgres redis
+        docker compose up -d opensearch postgres redis
 
         # Wait for services to be healthy
-        timeout 120 bash -c 'until docker-compose ps | grep -q "healthy"; do sleep 5; done' || true
+        timeout 120 bash -c 'until docker compose ps | grep -q "healthy"; do sleep 5; done' || true
 
     - name: Check service health
       run: |
-        docker-compose ps
+        docker compose ps
         curl -f http://localhost:9200/_cluster/health || echo "OpenSearch not ready"
 
     - name: Stop services
-      run: docker-compose down -v
+      run: docker compose down -v
       if: always()
