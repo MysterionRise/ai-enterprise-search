@@ -17,23 +17,23 @@ class TestPasswordHashing:
     """Test password hashing and verification"""
 
     def test_hash_password(self):
-        password = "test_password_123"
+        password = "test_pass_123"
         hashed = get_password_hash(password)
         assert hashed != password
         assert len(hashed) > 0
 
     def test_verify_correct_password(self):
-        password = "test_password_123"
+        password = "test_pass_123"
         hashed = get_password_hash(password)
         assert verify_password(password, hashed) is True
 
     def test_verify_incorrect_password(self):
-        password = "test_password_123"
+        password = "test_pass_123"
         hashed = get_password_hash(password)
-        assert verify_password("wrong_password", hashed) is False
+        assert verify_password("wrong_pass", hashed) is False
 
     def test_different_hashes_for_same_password(self):
-        password = "test_password_123"
+        password = "test_pass_123"
         hash1 = get_password_hash(password)
         hash2 = get_password_hash(password)
         # bcrypt uses salt, so hashes should be different
