@@ -1,6 +1,7 @@
 """
 RAG (Retrieval-Augmented Generation) API endpoints
 """
+
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from src.models.rag import (
@@ -9,7 +10,7 @@ from src.models.rag import (
     RAGHealthResponse,
     SourceDocument,
     Citation,
-    RAGMetadata
+    RAGMetadata,
 )
 from src.models.auth import User
 from src.core.security import get_current_user
@@ -26,10 +27,7 @@ rag_service = RAGService()
 
 
 @router.post("/ask", response_model=RAGResponse)
-async def ask_question(
-    request: RAGRequest,
-    current_user: User = Depends(get_current_user)
-):
+async def ask_question(request: RAGRequest, current_user: User = Depends(get_current_user)):
     """
     Generate AI answer to question using RAG
 
@@ -54,7 +52,7 @@ async def ask_question(
             query=request.query,
             user=current_user,
             num_chunks=request.num_chunks,
-            temperature=request.temperature
+            temperature=request.temperature,
         )
 
         # Convert to response model
@@ -63,7 +61,7 @@ async def ask_question(
             answer=result["answer"],
             sources=[SourceDocument(**src) for src in result["sources"]],
             citations=[Citation(**cit) for cit in result["citations"]],
-            metadata=RAGMetadata(**result["metadata"])
+            metadata=RAGMetadata(**result["metadata"]),
         )
 
         logger.info(
@@ -75,17 +73,11 @@ async def ask_question(
 
     except Exception as e:
         logger.error(f"RAG generation failed: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to generate answer: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to generate answer: {str(e)}")
 
 
 @router.post("/ask/stream")
-async def ask_question_stream(
-    request: RAGRequest,
-    current_user: User = Depends(get_current_user)
-):
+async def ask_question_stream(request: RAGRequest, current_user: User = Depends(get_current_user)):
     """
     Stream AI answer generation in real-time (Server-Sent Events)
 
@@ -106,14 +98,13 @@ async def ask_question_stream(
     };
     ```
     """
+
     async def event_generator():
         try:
             logger.info(f"RAG streaming request from user {current_user.username}: {request.query}")
 
             async for chunk in rag_service.stream_answer(
-                query=request.query,
-                user=current_user,
-                num_chunks=request.num_chunks
+                query=request.query, user=current_user, num_chunks=request.num_chunks
             ):
                 # Format as Server-Sent Event
                 yield f"data: {json.dumps(chunk)}\n\n"
@@ -122,10 +113,7 @@ async def ask_question_stream(
 
         except Exception as e:
             logger.error(f"Streaming failed: {e}", exc_info=True)
-            error_chunk = {
-                "type": "error",
-                "message": str(e)
-            }
+            error_chunk = {"type": "error", "message": str(e)}
             yield f"data: {json.dumps(error_chunk)}\n\n"
 
     return StreamingResponse(
@@ -134,8 +122,8 @@ async def ask_question_stream(
         headers={
             "Cache-Control": "no-cache",
             "Connection": "keep-alive",
-            "X-Accel-Buffering": "no"  # Disable buffering in nginx
-        }
+            "X-Accel-Buffering": "no",  # Disable buffering in nginx
+        },
     )
 
 
@@ -164,7 +152,7 @@ async def rag_health():
             status=status,
             llm_available=llm_healthy,
             provider=rag_service.llm_service.provider,
-            model=rag_service.llm_service.model
+            model=rag_service.llm_service.model,
         )
 
     except Exception as e:
@@ -173,7 +161,7 @@ async def rag_health():
             status="unhealthy",
             llm_available=False,
             provider=rag_service.llm_service.provider,
-            model=rag_service.llm_service.model
+            model=rag_service.llm_service.model,
         )
 
 
@@ -195,12 +183,11 @@ async def get_available_models(current_user: User = Depends(get_current_user)):
         return {
             "models": models,
             "current_model": rag_service.llm_service.model,
-            "provider": rag_service.llm_service.provider
+            "provider": rag_service.llm_service.provider,
         }
 
     except Exception as e:
         logger.error(f"Failed to get available models: {e}")
         raise HTTPException(
-            status_code=500,
-            detail=f"Failed to retrieve available models: {str(e)}"
+            status_code=500, detail=f"Failed to retrieve available models: {str(e)}"
         )

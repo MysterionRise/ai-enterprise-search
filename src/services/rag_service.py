@@ -2,6 +2,7 @@
 Retrieval-Augmented Generation (RAG) Service
 Combines search results with LLM to generate answers
 """
+
 from typing import List, Dict, Optional
 from src.services.search_service import SearchService
 from src.services.llm_service import LLMService
@@ -23,11 +24,7 @@ class RAGService:
         self.max_context_tokens = 6000  # Leave room for prompt + answer
 
     async def generate_answer(
-        self,
-        query: str,
-        user: User,
-        num_chunks: int = 5,
-        temperature: float = 0.3
+        self, query: str, user: User, num_chunks: int = 5, temperature: float = 0.3
     ) -> Dict:
         """
         Generate answer to query using RAG pipeline
@@ -53,7 +50,7 @@ class RAGService:
             boost_personalization=True,
             user_groups=user.groups,
             user_country=user.country,
-            user_department=user.department
+            user_department=user.department,
         )
 
         try:
@@ -75,8 +72,8 @@ class RAGService:
                     "total_time_ms": (time.time() - start_time) * 1000,
                     "chunks_used": 0,
                     "model": self.llm_service.model,
-                    "temperature": temperature
-                }
+                    "temperature": temperature,
+                },
             }
 
         retrieval_time = time.time()
@@ -92,8 +89,8 @@ class RAGService:
             user_context={
                 "username": user.username,
                 "department": user.department,
-                "country": user.country
-            }
+                "country": user.country,
+            },
         )
 
         logger.info(f"RAG: Generating answer with {len(context_chunks)} chunks")
@@ -101,9 +98,7 @@ class RAGService:
         # Step 4: Generate answer using LLM
         try:
             answer = await self.llm_service.generate(
-                prompt=prompt,
-                max_tokens=500,
-                temperature=temperature
+                prompt=prompt, max_tokens=500, temperature=temperature
             )
         except Exception as e:
             logger.error(f"RAG: LLM generation failed: {e}", exc_info=True)
@@ -114,7 +109,9 @@ class RAGService:
         # Step 5: Extract citations from answer
         citations = self._extract_citations(answer, context_chunks)
 
-        logger.info(f"RAG: Answer generated successfully in {(generation_time - retrieval_time) * 1000:.0f}ms")
+        logger.info(
+            f"RAG: Answer generated successfully in {(generation_time - retrieval_time) * 1000:.0f}ms"
+        )
 
         return {
             "query": query,
@@ -122,11 +119,11 @@ class RAGService:
             "sources": [
                 {
                     "doc_id": chunk.doc_id,
-                    "chunk_id": chunk.chunk_id if hasattr(chunk, 'chunk_id') else None,
+                    "chunk_id": chunk.chunk_id if hasattr(chunk, "chunk_id") else None,
                     "title": chunk.title,
                     "snippet": chunk.snippet[:200] if chunk.snippet else "",
                     "score": chunk.score,
-                    "source": chunk.source
+                    "source": chunk.source,
                 }
                 for chunk in context_chunks
             ],
@@ -137,8 +134,8 @@ class RAGService:
                 "total_time_ms": (generation_time - start_time) * 1000,
                 "chunks_used": len(context_chunks),
                 "model": self.llm_service.model,
-                "temperature": temperature
-            }
+                "temperature": temperature,
+            },
         }
 
     def _build_context(self, chunks: List) -> str:
@@ -158,9 +155,7 @@ class RAGService:
             text = chunk.snippet if chunk.snippet else ""
             source = chunk.source
 
-            context_parts.append(
-                f"[Document {i}: {title} (Source: {source})]\n{text}\n"
-            )
+            context_parts.append(f"[Document {i}: {title} (Source: {source})]\n{text}\n")
 
         return "\n".join(context_parts)
 
@@ -228,17 +223,15 @@ Answer:"""
         citations = []
 
         # Look for [Document N] patterns in answer
-        doc_references = re.findall(r'\[Document (\d+)\]', answer)
+        doc_references = re.findall(r"\[Document (\d+)\]", answer)
 
         for ref in doc_references:
             doc_num = int(ref) - 1  # Convert to 0-indexed
             if 0 <= doc_num < len(chunks):
                 chunk = chunks[doc_num]
-                citations.append({
-                    "doc_id": chunk.doc_id,
-                    "title": chunk.title,
-                    "reference": f"Document {ref}"
-                })
+                citations.append(
+                    {"doc_id": chunk.doc_id, "title": chunk.title, "reference": f"Document {ref}"}
+                )
 
         # Deduplicate citations
         seen = set()
@@ -270,24 +263,18 @@ Answer:"""
             boost_personalization=True,
             user_groups=user.groups,
             user_country=user.country,
-            user_department=user.department
+            user_department=user.department,
         )
 
         try:
             search_results = await self.search_service.search(search_request)
         except Exception as e:
             logger.error(f"RAG streaming: Search failed: {e}")
-            yield {
-                "type": "error",
-                "message": f"Failed to retrieve documents: {str(e)}"
-            }
+            yield {"type": "error", "message": f"Failed to retrieve documents: {str(e)}"}
             return
 
         if not search_results.results:
-            yield {
-                "type": "error",
-                "message": "No relevant documents found"
-            }
+            yield {"type": "error", "message": "No relevant documents found"}
             return
 
         # Send sources first
@@ -300,10 +287,10 @@ Answer:"""
                     "title": chunk.title,
                     "snippet": chunk.snippet[:200] if chunk.snippet else "",
                     "score": chunk.score,
-                    "source": chunk.source
+                    "source": chunk.source,
                 }
                 for chunk in context_chunks
-            ]
+            ],
         }
 
         # Build prompt
@@ -314,26 +301,18 @@ Answer:"""
             user_context={
                 "username": user.username,
                 "department": user.department,
-                "country": user.country
-            }
+                "country": user.country,
+            },
         )
 
         # Stream answer tokens
         try:
             async for token in self.llm_service.stream_generate(prompt, temperature=0.3):
-                yield {
-                    "type": "token",
-                    "token": token
-                }
+                yield {"type": "token", "token": token}
         except Exception as e:
             logger.error(f"RAG streaming: Generation failed: {e}")
-            yield {
-                "type": "error",
-                "message": f"Failed to generate answer: {str(e)}"
-            }
+            yield {"type": "error", "message": f"Failed to generate answer: {str(e)}"}
             return
 
         # Send completion
-        yield {
-            "type": "done"
-        }
+        yield {"type": "done"}

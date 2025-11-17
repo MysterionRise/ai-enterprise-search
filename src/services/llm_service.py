@@ -2,6 +2,7 @@
 LLM Service for RAG answer generation
 Supports: Ollama (local), OpenAI, Anthropic
 """
+
 import httpx
 import os
 from typing import Optional, Dict, AsyncGenerator
@@ -24,11 +25,7 @@ class LLMService:
         logger.info(f"LLM Service initialized: provider={self.provider}, model={self.model}")
 
     async def generate(
-        self,
-        prompt: str,
-        max_tokens: int = 1000,
-        temperature: float = 0.7,
-        stream: bool = False
+        self, prompt: str, max_tokens: int = 1000, temperature: float = 0.7, stream: bool = False
     ) -> str:
         """
         Generate response from LLM
@@ -52,11 +49,7 @@ class LLMService:
             raise ValueError(f"Unsupported LLM provider: {self.provider}")
 
     async def _generate_ollama(
-        self,
-        prompt: str,
-        max_tokens: int,
-        temperature: float,
-        stream: bool
+        self, prompt: str, max_tokens: int, temperature: float, stream: bool
     ) -> str:
         """Generate using Ollama"""
         try:
@@ -71,8 +64,8 @@ class LLMService:
                             "num_predict": max_tokens,
                             "temperature": temperature,
                             "top_p": 0.9,
-                        }
-                    }
+                        },
+                    },
                 )
                 response.raise_for_status()
                 result = response.json()
@@ -88,10 +81,7 @@ class LLMService:
             raise Exception(f"Failed to generate response: {str(e)}")
 
     async def stream_generate(
-        self,
-        prompt: str,
-        max_tokens: int = 1000,
-        temperature: float = 0.7
+        self, prompt: str, max_tokens: int = 1000, temperature: float = 0.7
     ) -> AsyncGenerator[str, None]:
         """
         Stream response from LLM token by token
@@ -113,10 +103,7 @@ class LLMService:
             yield response
 
     async def _stream_ollama(
-        self,
-        prompt: str,
-        max_tokens: int,
-        temperature: float
+        self, prompt: str, max_tokens: int, temperature: float
     ) -> AsyncGenerator[str, None]:
         """Stream response from Ollama"""
         try:
@@ -132,13 +119,14 @@ class LLMService:
                             "num_predict": max_tokens,
                             "temperature": temperature,
                             "top_p": 0.9,
-                        }
-                    }
+                        },
+                    },
                 ) as response:
                     response.raise_for_status()
                     async for line in response.aiter_lines():
                         if line:
                             import json
+
                             try:
                                 data = json.loads(line)
                                 if "response" in data:
@@ -151,11 +139,7 @@ class LLMService:
             raise Exception(f"Failed to stream response: {str(e)}")
 
     async def _generate_openai(
-        self,
-        prompt: str,
-        max_tokens: int,
-        temperature: float,
-        stream: bool
+        self, prompt: str, max_tokens: int, temperature: float, stream: bool
     ) -> str:
         """Generate using OpenAI API (future implementation)"""
         # TODO: Implement OpenAI integration
@@ -164,11 +148,7 @@ class LLMService:
         raise NotImplementedError("OpenAI provider not yet implemented")
 
     async def _generate_anthropic(
-        self,
-        prompt: str,
-        max_tokens: int,
-        temperature: float,
-        stream: bool
+        self, prompt: str, max_tokens: int, temperature: float, stream: bool
     ) -> str:
         """Generate using Anthropic API (future implementation)"""
         # TODO: Implement Anthropic integration
