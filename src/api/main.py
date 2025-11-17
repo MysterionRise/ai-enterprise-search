@@ -12,7 +12,7 @@ from starlette.responses import Response
 import os
 
 from src.core.config import settings
-from src.api.routes import auth, search, ingest, health
+from src.api.routes import auth, search, ingest, health, rag
 
 # Configure logging
 logging.basicConfig(
@@ -119,6 +119,7 @@ app.include_router(health.router, tags=["Health"])
 app.include_router(auth.router, prefix=f"{settings.API_V1_PREFIX}/auth", tags=["Authentication"])
 app.include_router(search.router, prefix=f"{settings.API_V1_PREFIX}/search", tags=["Search"])
 app.include_router(ingest.router, prefix=f"{settings.API_V1_PREFIX}/ingest", tags=["Ingestion"])
+app.include_router(rag.router, tags=["RAG"])
 
 
 # Prometheus metrics endpoint
