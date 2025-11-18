@@ -214,8 +214,108 @@
 
             <div id="facets-container"></div>
             <div id="results-container"></div>
+
+            <!-- Recommendations Sidebar -->
+            <div id="recommendations-sidebar" style="position: fixed; right: 20px; top: 100px; width: 320px; max-height: calc(100vh - 120px); overflow-y: auto; z-index: 100;">
+                <!-- Trending Section -->
+                <div class="recommendation-widget" style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px;">
+                    <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                        <span style="font-size: 20px; margin-right: 8px;">🔥</span>
+                        <h3 style="margin: 0; font-size: 16px; color: #1a202c;">Trending Now</h3>
+                    </div>
+                    <div id="trending-list" style="font-size: 14px;">
+                        <div class="loading" style="text-align: center; color: #718096; padding: 10px;">Loading...</div>
+                    </div>
+                </div>
+
+                <!-- Popular in Department -->
+                <div class="recommendation-widget" style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                        <span style="font-size: 20px; margin-right: 8px;">📊</span>
+                        <h3 style="margin: 0; font-size: 16px; color: #1a202c;">Popular in <span id="user-dept-name">Your Team</span></h3>
+                    </div>
+                    <div id="popular-list" style="font-size: 14px;">
+                        <div class="loading" style="text-align: center; color: #718096; padding: 10px;">Loading...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RAG Answer Section -->
+            <div id="rag-section" style="display: none; margin-top: 24px;">
+                <div style="background: #f8f9fa; padding: 24px; border-radius: 8px; border-left: 4px solid #667eea; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);">
+                    <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                        <span style="font-size: 28px; margin-right: 12px;">🤖</span>
+                        <h3 style="margin: 0; color: #1a202c;">AI-Generated Answer</h3>
+                    </div>
+
+                    <div id="rag-loading" style="display: none;">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <span>Generating answer...</span>
+                        </div>
+                    </div>
+
+                    <div id="rag-answer" style="font-size: 16px; line-height: 1.8; margin: 16px 0; color: #2d3748;"></div>
+
+                    <div id="rag-sources" style="margin-top: 20px; display: none;">
+                        <strong style="color: #2d3748; font-size: 15px;">Sources:</strong>
+                        <ul id="rag-sources-list" style="margin-top: 10px; padding-left: 20px;"></ul>
+                    </div>
+
+                    <div id="rag-metadata" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0; font-size: 13px; color: #718096; display: none;"></div>
+
+                    <div id="rag-feedback" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #e2e8f0; display: none;">
+                        <span style="margin-right: 12px; color: #4a5568;">Was this answer helpful?</span>
+                        <button onclick="ragFeedback(1)" class="btn" style="margin-right: 8px; background: #48bb78; color: white; padding: 8px 16px; font-size: 14px;">👍 Helpful</button>
+                        <button onclick="ragFeedback(-1)" class="btn" style="background: #f56565; color: white; padding: 8px 16px; font-size: 14px;">👎 Not Helpful</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+
+    <style>
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 12px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .ask-ai-btn {
+            width: 100%;
+            padding: 16px;
+            margin: 20px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .ask-ai-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .ask-ai-btn:active {
+            transform: translateY(0);
+        }
+    </style>
 
     <script>
         const API_URL = 'http://localhost:8000/api/v1';
@@ -365,6 +465,147 @@
 
             html += '</div>';
             resultsContainer.innerHTML = html;
+
+            // Add "Ask AI" button after results if we have results
+            if (data.results.length > 0) {
+                showAskAIButton(data.query);
+            }
+        }
+
+        function showAskAIButton(query) {
+            const resultsContainer = document.getElementById('results-container');
+
+            // Check if button already exists
+            if (document.getElementById('ask-ai-btn')) return;
+
+            const button = document.createElement('button');
+            button.id = 'ask-ai-btn';
+            button.className = 'ask-ai-btn';
+            button.innerHTML = '🤖 Ask AI to answer this question';
+            button.onclick = () => askAI(query);
+
+            resultsContainer.appendChild(button);
+        }
+
+        async function askAI(query) {
+            const ragSection = document.getElementById('rag-section');
+            const ragLoading = document.getElementById('rag-loading');
+            const ragAnswer = document.getElementById('rag-answer');
+            const ragSources = document.getElementById('rag-sources');
+            const ragSourcesList = document.getElementById('rag-sources-list');
+            const ragMetadata = document.getElementById('rag-metadata');
+            const ragFeedback = document.getElementById('rag-feedback');
+
+            // Show section and loading
+            ragSection.style.display = 'block';
+            ragLoading.style.display = 'block';
+            ragAnswer.innerHTML = '';
+            ragSourcesList.innerHTML = '';
+            ragSources.style.display = 'none';
+            ragMetadata.style.display = 'none';
+            ragFeedback.style.display = 'none';
+
+            // Scroll to RAG section
+            ragSection.scrollIntoView({ behavior: 'smooth' });
+
+            try {
+                const response = await fetch(`${API_URL}/rag/ask`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        query: query,
+                        num_chunks: 5,
+                        temperature: 0.3
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                // Hide loading
+                ragLoading.style.display = 'none';
+
+                // Display answer with citation formatting
+                ragAnswer.innerHTML = formatAnswer(data.answer);
+
+                // Display sources
+                ragSources.style.display = 'block';
+                data.sources.forEach((source, idx) => {
+                    const li = document.createElement('li');
+                    li.style.marginBottom = '8px';
+                    li.innerHTML = `
+                        <a href="#" target="_blank" style="color: #667eea; text-decoration: none; font-weight: 500;">
+                            [${idx + 1}] ${source.title}
+                        </a>
+                        <span style="color: #718096; margin-left: 8px; font-size: 13px;">
+                            (${source.source}, Score: ${source.score.toFixed(2)})
+                        </span>
+                    `;
+                    ragSourcesList.appendChild(li);
+                });
+
+                // Show metadata
+                ragMetadata.style.display = 'block';
+                ragMetadata.innerHTML = `
+                    <span style="margin-right: 16px;">⏱️ Retrieved: ${data.metadata.retrieval_time_ms.toFixed(0)}ms</span>
+                    <span style="margin-right: 16px;">🤖 Generated: ${data.metadata.generation_time_ms.toFixed(0)}ms</span>
+                    <span style="margin-right: 16px;">📊 Total: ${data.metadata.total_time_ms.toFixed(0)}ms</span>
+                    <span>📝 Model: ${data.metadata.model}</span>
+                `;
+
+                // Show feedback buttons
+                ragFeedback.style.display = 'block';
+
+            } catch (error) {
+                console.error('RAG failed:', error);
+                ragLoading.style.display = 'none';
+                ragAnswer.innerHTML = `
+                    <div style="color: #c53030; padding: 16px; background: #fed7d7; border-radius: 6px;">
+                        <strong>❌ Failed to generate answer</strong><br>
+                        ${error.message}<br><br>
+                        <span style="font-size: 14px;">
+                            Make sure the Ollama service is running and the model is downloaded:<br>
+                            • Start Ollama: <code>ollama serve</code><br>
+                            • Pull model: <code>ollama pull llama3.1:8b-instruct-q4_0</code>
+                        </span>
+                    </div>
+                `;
+            }
+        }
+
+        function formatAnswer(answer) {
+            // Replace [Document N] with superscript citations
+            let formatted = answer.replace(
+                /\[Document (\d+)\]/g,
+                '<sup style="color: #667eea; font-weight: 600;">[$1]</sup>'
+            );
+
+            // Convert line breaks to paragraphs
+            formatted = formatted.split('\n\n').map(para =>
+                para.trim() ? `<p style="margin-bottom: 12px;">${para}</p>` : ''
+            ).join('');
+
+            return formatted;
+        }
+
+        function ragFeedback(score) {
+            console.log('RAG feedback:', score);
+
+            // TODO: Send feedback to analytics endpoint
+            // For now, just show confirmation
+
+            const feedbackDiv = document.getElementById('rag-feedback');
+            feedbackDiv.innerHTML = `
+                <span style="color: #48bb78; font-weight: 500;">
+                    ✓ Thank you for your feedback!
+                </span>
+            `;
         }
 
         function displayFacets(facets) {
@@ -388,6 +629,122 @@
 
             html += '</div>';
             facetsContainer.innerHTML = html;
+        }
+
+        // Recommendation Functions
+        async function loadRecommendations() {
+            try {
+                // Load trending documents
+                await loadTrending();
+
+                // Load popular in department
+                await loadPopular();
+            } catch (error) {
+                console.error('Failed to load recommendations:', error);
+            }
+        }
+
+        async function loadTrending() {
+            const trendingList = document.getElementById('trending-list');
+
+            try {
+                const response = await fetch(`${API_URL}/recommendations/trending?hours=48&limit=5`, {
+                    headers: {'Authorization': `Bearer ${authToken}`}
+                });
+
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                const data = await response.json();
+
+                if (data.trending.length === 0) {
+                    trendingList.innerHTML = '<div style="color: #718096; font-size: 13px;">No trending documents</div>';
+                    return;
+                }
+
+                let html = '';
+                data.trending.forEach((doc, index) => {
+                    html += `
+                        <div style="padding: 10px 0; border-bottom: 1px solid #e2e8f0;">
+                            <div style="font-weight: 500; color: #2d3748; margin-bottom: 4px; cursor: pointer;"
+                                 onclick="viewDocument('${doc.doc_id}')">
+                                ${doc.title}
+                            </div>
+                            <div style="font-size: 12px; color: #718096;">
+                                <span style="background: #edf2f7; padding: 2px 6px; border-radius: 3px; margin-right: 6px;">${doc.source}</span>
+                                ${doc.view_count ? `${doc.view_count} views` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                trendingList.innerHTML = html;
+            } catch (error) {
+                console.error('Failed to load trending:', error);
+                trendingList.innerHTML = '<div style="color: #f56565; font-size: 13px;">Failed to load</div>';
+            }
+        }
+
+        async function loadPopular() {
+            const popularList = document.getElementById('popular-list');
+            const userDeptName = document.getElementById('user-dept-name');
+
+            try {
+                const response = await fetch(`${API_URL}/recommendations/popular?days=30&limit=5`, {
+                    headers: {'Authorization': `Bearer ${authToken}`}
+                });
+
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                const data = await response.json();
+
+                // Update department name
+                if (data.department) {
+                    userDeptName.textContent = data.department;
+                }
+
+                if (data.popular.length === 0) {
+                    popularList.innerHTML = '<div style="color: #718096; font-size: 13px;">No popular documents</div>';
+                    return;
+                }
+
+                let html = '';
+                data.popular.forEach((doc, index) => {
+                    html += `
+                        <div style="padding: 10px 0; border-bottom: 1px solid #e2e8f0;">
+                            <div style="font-weight: 500; color: #2d3748; margin-bottom: 4px; cursor: pointer;"
+                                 onclick="viewDocument('${doc.doc_id}')">
+                                ${doc.title}
+                            </div>
+                            <div style="font-size: 12px; color: #718096;">
+                                <span style="background: #edf2f7; padding: 2px 6px; border-radius: 3px; margin-right: 6px;">${doc.source}</span>
+                                ${doc.view_count ? `${doc.view_count} views` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                popularList.innerHTML = html;
+            } catch (error) {
+                console.error('Failed to load popular:', error);
+                popularList.innerHTML = '<div style="color: #f56565; font-size: 13px;">Failed to load</div>';
+            }
+        }
+
+        function viewDocument(docId) {
+            // TODO: Implement document view
+            console.log('View document:', docId);
+            // For now, just log it
+            // In production, this would navigate to document detail page
+            alert(`Document ${docId} - Full viewer not implemented in demo`);
+        }
+
+        // Load recommendations when search section is shown
+        function showSearchSection() {
+            document.getElementById('auth-section').style.display = 'none';
+            document.getElementById('search-section').style.display = 'block';
+
+            // Load recommendations after showing search section
+            setTimeout(loadRecommendations, 500);
         }
     </script>
 </body>

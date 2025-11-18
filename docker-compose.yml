@@ -98,6 +98,25 @@ services:
       timeout: 10s
       retries: 3
 
+  # Ollama - Local LLM for RAG
+  ollama:
+    image: ollama/ollama:latest
+    container_name: enterprise-search-ollama
+    volumes:
+      - ollama-data:/root/.ollama
+    ports:
+      - "11434:11434"
+    networks:
+      - enterprise-search
+    # Uncomment for GPU support (requires nvidia-docker):
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
   # FastAPI Application
   api:
     build:
@@ -118,6 +137,13 @@ services:
       - JWT_SECRET_KEY=your-secret-key-change-in-production
       - JWT_ALGORITHM=HS256
       - LOG_LEVEL=INFO
+      # LLM Configuration
+      - LLM_PROVIDER=ollama
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - LLM_MODEL=llama3.1:8b-instruct-q4_0
+      - RAG_NUM_CHUNKS=5
+      - RAG_TEMPERATURE=0.3
+      - RAG_MAX_TOKENS=500
     volumes:
       - ./src:/app/src
       - ./data:/app/data
@@ -250,3 +276,4 @@ volumes:
   postgres-data:
   prometheus-data:
   grafana-data:
+  ollama-data:
