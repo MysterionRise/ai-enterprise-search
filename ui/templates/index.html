@@ -215,6 +215,31 @@
             <div id="facets-container"></div>
             <div id="results-container"></div>
 
+            <!-- Recommendations Sidebar -->
+            <div id="recommendations-sidebar" style="position: fixed; right: 20px; top: 100px; width: 320px; max-height: calc(100vh - 120px); overflow-y: auto; z-index: 100;">
+                <!-- Trending Section -->
+                <div class="recommendation-widget" style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px;">
+                    <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                        <span style="font-size: 20px; margin-right: 8px;">🔥</span>
+                        <h3 style="margin: 0; font-size: 16px; color: #1a202c;">Trending Now</h3>
+                    </div>
+                    <div id="trending-list" style="font-size: 14px;">
+                        <div class="loading" style="text-align: center; color: #718096; padding: 10px;">Loading...</div>
+                    </div>
+                </div>
+
+                <!-- Popular in Department -->
+                <div class="recommendation-widget" style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                        <span style="font-size: 20px; margin-right: 8px;">📊</span>
+                        <h3 style="margin: 0; font-size: 16px; color: #1a202c;">Popular in <span id="user-dept-name">Your Team</span></h3>
+                    </div>
+                    <div id="popular-list" style="font-size: 14px;">
+                        <div class="loading" style="text-align: center; color: #718096; padding: 10px;">Loading...</div>
+                    </div>
+                </div>
+            </div>
+
             <!-- RAG Answer Section -->
             <div id="rag-section" style="display: none; margin-top: 24px;">
                 <div style="background: #f8f9fa; padding: 24px; border-radius: 8px; border-left: 4px solid #667eea; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);">
@@ -604,6 +629,122 @@
 
             html += '</div>';
             facetsContainer.innerHTML = html;
+        }
+
+        // Recommendation Functions
+        async function loadRecommendations() {
+            try {
+                // Load trending documents
+                await loadTrending();
+
+                // Load popular in department
+                await loadPopular();
+            } catch (error) {
+                console.error('Failed to load recommendations:', error);
+            }
+        }
+
+        async function loadTrending() {
+            const trendingList = document.getElementById('trending-list');
+
+            try {
+                const response = await fetch(`${API_URL}/recommendations/trending?hours=48&limit=5`, {
+                    headers: {'Authorization': `Bearer ${authToken}`}
+                });
+
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                const data = await response.json();
+
+                if (data.trending.length === 0) {
+                    trendingList.innerHTML = '<div style="color: #718096; font-size: 13px;">No trending documents</div>';
+                    return;
+                }
+
+                let html = '';
+                data.trending.forEach((doc, index) => {
+                    html += `
+                        <div style="padding: 10px 0; border-bottom: 1px solid #e2e8f0;">
+                            <div style="font-weight: 500; color: #2d3748; margin-bottom: 4px; cursor: pointer;"
+                                 onclick="viewDocument('${doc.doc_id}')">
+                                ${doc.title}
+                            </div>
+                            <div style="font-size: 12px; color: #718096;">
+                                <span style="background: #edf2f7; padding: 2px 6px; border-radius: 3px; margin-right: 6px;">${doc.source}</span>
+                                ${doc.view_count ? `${doc.view_count} views` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                trendingList.innerHTML = html;
+            } catch (error) {
+                console.error('Failed to load trending:', error);
+                trendingList.innerHTML = '<div style="color: #f56565; font-size: 13px;">Failed to load</div>';
+            }
+        }
+
+        async function loadPopular() {
+            const popularList = document.getElementById('popular-list');
+            const userDeptName = document.getElementById('user-dept-name');
+
+            try {
+                const response = await fetch(`${API_URL}/recommendations/popular?days=30&limit=5`, {
+                    headers: {'Authorization': `Bearer ${authToken}`}
+                });
+
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                const data = await response.json();
+
+                // Update department name
+                if (data.department) {
+                    userDeptName.textContent = data.department;
+                }
+
+                if (data.popular.length === 0) {
+                    popularList.innerHTML = '<div style="color: #718096; font-size: 13px;">No popular documents</div>';
+                    return;
+                }
+
+                let html = '';
+                data.popular.forEach((doc, index) => {
+                    html += `
+                        <div style="padding: 10px 0; border-bottom: 1px solid #e2e8f0;">
+                            <div style="font-weight: 500; color: #2d3748; margin-bottom: 4px; cursor: pointer;"
+                                 onclick="viewDocument('${doc.doc_id}')">
+                                ${doc.title}
+                            </div>
+                            <div style="font-size: 12px; color: #718096;">
+                                <span style="background: #edf2f7; padding: 2px 6px; border-radius: 3px; margin-right: 6px;">${doc.source}</span>
+                                ${doc.view_count ? `${doc.view_count} views` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                popularList.innerHTML = html;
+            } catch (error) {
+                console.error('Failed to load popular:', error);
+                popularList.innerHTML = '<div style="color: #f56565; font-size: 13px;">Failed to load</div>';
+            }
+        }
+
+        function viewDocument(docId) {
+            // TODO: Implement document view
+            console.log('View document:', docId);
+            // For now, just log it
+            // In production, this would navigate to document detail page
+            alert(`Document ${docId} - Full viewer not implemented in demo`);
+        }
+
+        // Load recommendations when search section is shown
+        function showSearchSection() {
+            document.getElementById('auth-section').style.display = 'none';
+            document.getElementById('search-section').style.display = 'block';
+
+            // Load recommendations after showing search section
+            setTimeout(loadRecommendations, 500);
         }
     </script>
 </body>
