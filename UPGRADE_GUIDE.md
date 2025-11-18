@@ -240,11 +240,23 @@ pip install -r requirements.txt
 
 ### NumPy 2.0 Compatibility Issues
 ```bash
-# If you see NumPy errors, some libraries might not be compatible
-# Check for warnings and update specific libraries
+# NumPy 2.1.3 is used for best performance with latest libraries
+# Some older libraries don't support NumPy 2.x yet
 
-# Example: If faiss-cpu has issues
-pip install faiss-cpu --upgrade
+# RESOLVED: unstructured library removed (requires numpy<2)
+# Alternative document parsing using:
+# - Apache Tika (handles most formats)
+# - pypdf (PDF parsing)
+# - python-docx (Word documents)
+# - python-pptx (PowerPoint)
+
+# If you need unstructured for specific use cases:
+# Option 1: Use in separate environment with numpy 1.x
+# Option 2: Wait for unstructured to support numpy 2.x
+# Option 3: Use docker container with old numpy
+
+# If presidio (PII detection) causes issues, comment it out in requirements.txt
+# PII detection is optional for core functionality
 ```
 
 ### Prometheus Config Issues
