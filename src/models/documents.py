@@ -144,3 +144,25 @@ class IngestResponse(BaseModel):
     chunks_created: int
     status: str = "success"
     message: Optional[str] = None
+
+
+class DocumentSummaryRequest(BaseModel):
+    """Request to generate document summary"""
+
+    doc_id: str = Field(..., description="Document ID to summarize")
+    summary_type: str = Field(
+        default="brief", description="Type of summary: brief, detailed, or key_points"
+    )
+    max_length: int = Field(default=200, ge=50, le=1000, description="Maximum summary length in words")
+
+
+class DocumentSummary(BaseModel):
+    """Generated document summary"""
+
+    doc_id: str
+    summary_type: str
+    summary: str = Field(..., description="Generated summary text")
+    key_points: Optional[List[str]] = Field(None, description="Extracted key points (if applicable)")
+    generated_at: datetime = Field(default_factory=datetime.utcnow)
+    model: str = Field(..., description="LLM model used for generation")
+    generation_time_ms: float = Field(..., description="Time taken to generate summary in milliseconds")

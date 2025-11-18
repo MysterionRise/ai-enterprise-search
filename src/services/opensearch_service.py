@@ -243,6 +243,46 @@ class OpenSearchService:
         """Get statistics for an index"""
         return self.client.indices.stats(index=index_name)
 
+    async def get_document(self, doc_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Get a document by ID from the documents index
+
+        Args:
+            doc_id: Document ID to retrieve
+
+        Returns:
+            Document data dict or None if not found
+        """
+        try:
+            response = self.client.get(index=settings.DOCUMENTS_INDEX, id=doc_id)
+            return response["_source"]
+        except Exception as e:
+            logger.warning(f"Document {doc_id} not found: {e}")
+            return None
+
+    async def get_document_chunks(self, doc_id: str, limit: int = 100) -> List[Dict[str, Any]]:
+        """
+        Get all chunks for a document
+
+        Args:
+            doc_id: Parent document ID
+            limit: Maximum number of chunks to return
+
+        Returns:
+            List of chunk data dicts
+        """
+        try:
+            query = {
+                "query": {"term": {"doc_id": doc_id}},
+                "sort": [{"chunk_idx": "asc"}],
+                "size": limit
+            }
+            response = self.client.search(index=settings.CHUNKS_INDEX, body=query)
+            return [hit["_source"] for hit in response["hits"]["hits"]]
+        except Exception as e:
+            logger.error(f"Failed to get chunks for doc {doc_id}: {e}")
+            return []
+
 
 # Global instance
 opensearch_service = OpenSearchService()
