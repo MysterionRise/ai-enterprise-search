@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # OpenSearch - Core search engine with k-NN support
   opensearch:
-    image: opensearchproject/opensearch:2.11.1
+    image: opensearchproject/opensearch:3.0.0
     container_name: enterprise-search-opensearch
     environment:
       - discovery.type=single-node
@@ -33,7 +33,7 @@ services:
 
   # OpenSearch Dashboards - UI for OpenSearch
   opensearch-dashboards:
-    image: opensearchproject/opensearch-dashboards:2.11.1
+    image: opensearchproject/opensearch-dashboards:3.0.0
     container_name: enterprise-search-dashboards
     environment:
       - OPENSEARCH_HOSTS=http://opensearch:9200
@@ -86,7 +86,7 @@ services:
 
   # Apache Tika Server - Document parsing
   tika:
-    image: apache/tika:2.9.1.0
+    image: apache/tika:3.0.0.0
     container_name: enterprise-search-tika
     ports:
       - "9998:9998"
@@ -235,7 +235,7 @@ services:
 
   # Prometheus - Metrics collection
   prometheus:
-    image: prom/prometheus:v2.48.0
+    image: prom/prometheus:v3.0.1
     container_name: enterprise-search-prometheus
     volumes:
       - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
@@ -250,7 +250,7 @@ services:
 
   # Grafana - Metrics visualization
   grafana:
-    image: grafana/grafana:10.2.2
+    image: grafana/grafana:11.3.0
     container_name: enterprise-search-grafana
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
