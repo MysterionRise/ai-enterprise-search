@@ -168,9 +168,7 @@ class DocumentSummary(BaseModel):
     doc_id: str
     summary_type: str
     summary: str = Field(..., description="Generated summary text")
-    key_points: list[str] | None = Field(
-        None, description="Extracted key points (if applicable)"
-    )
+    key_points: list[str] | None = Field(None, description="Extracted key points (if applicable)")
     generated_at: datetime = Field(default_factory=datetime.utcnow)
     model: str = Field(..., description="LLM model used for generation")
     generation_time_ms: float = Field(

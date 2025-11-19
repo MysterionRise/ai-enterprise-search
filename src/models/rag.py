@@ -2,7 +2,6 @@
 Pydantic models for RAG (Retrieval-Augmented Generation) endpoints
 """
 
-
 from pydantic import BaseModel, Field
 
 

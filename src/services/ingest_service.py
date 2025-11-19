@@ -201,9 +201,7 @@ class IngestService:
 
         # Create chunk objects
         chunks = []
-        for (chunk_idx, text, char_start, char_end), embedding in zip(
-            chunks_data, embeddings
-        ):
+        for (chunk_idx, text, char_start, char_end), embedding in zip(chunks_data, embeddings):
             chunk = DocumentChunk(
                 chunk_id=f"{document.doc_id}-{chunk_idx}",
                 doc_id=document.doc_id,

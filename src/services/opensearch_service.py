@@ -185,9 +185,7 @@ class OpenSearchService:
         self.create_chunks_index()
         logger.info("All indices initialized")
 
-    def bulk_index_documents(
-        self, documents: list[dict[str, Any]], index_name: str | None = None
-    ):
+    def bulk_index_documents(self, documents: list[dict[str, Any]], index_name: str | None = None):
         """
         Bulk index documents
 

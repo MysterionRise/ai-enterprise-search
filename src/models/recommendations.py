@@ -2,7 +2,6 @@
 Pydantic models for Recommendation endpoints
 """
 
-
 from pydantic import BaseModel
 
 
