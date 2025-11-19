@@ -1,10 +1,11 @@
 """Database connection utilities"""
 
+import logging
+from collections.abc import Generator
+from contextlib import contextmanager
+
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from contextlib import contextmanager
-from typing import Generator, Optional
-import logging
 
 from src.core.config import settings
 
@@ -22,7 +23,7 @@ class DatabaseConnection:
             "user": settings.POSTGRES_USER,
             "password": settings.POSTGRES_PASSWORD,
         }
-        self._connection: Optional[psycopg2.extensions.connection] = None
+        self._connection: psycopg2.extensions.connection | None = None
 
     def connect(self):
         """Establish database connection"""
@@ -122,10 +123,10 @@ def create_user(
     username: str,
     email: str,
     hashed_password: str,
-    full_name: Optional[str] = None,
+    full_name: str | None = None,
     groups: list[str] = None,
-    department: Optional[str] = None,
-    country: Optional[str] = None,
+    department: str | None = None,
+    country: str | None = None,
 ):
     """Create a new user"""
     if groups is None:

@@ -1,16 +1,22 @@
 """Document ingestion endpoints"""
 
-from fastapi import APIRouter, Security, HTTPException, UploadFile, File, Form
-from typing import Annotated, Optional
 import logging
+import time
+from typing import Annotated
 
-from src.models.documents import DocumentIngestRequest, IngestResponse, DocumentSummaryRequest, DocumentSummary
-from src.models.auth import TokenData
+from fastapi import APIRouter, File, Form, HTTPException, Security, UploadFile
+
 from src.core.security import get_current_user
+from src.models.auth import TokenData
+from src.models.documents import (
+    DocumentIngestRequest,
+    DocumentSummary,
+    DocumentSummaryRequest,
+    IngestResponse,
+)
 from src.services.ingest_service import IngestService
 from src.services.llm_service import LLMService
 from src.services.opensearch_service import OpenSearchService
-import time
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -45,10 +51,10 @@ async def ingest_document(
 async def upload_file(
     file: UploadFile = File(...),
     source: str = Form(...),
-    source_id: Optional[str] = Form(None),
+    source_id: str | None = Form(None),
     acl_allow: str = Form("all-employees"),
-    country_tags: Optional[str] = Form(None),
-    department: Optional[str] = Form(None),
+    country_tags: str | None = Form(None),
+    department: str | None = Form(None),
     current_user: Annotated[TokenData, Security(get_current_user)] = None,
 ):
     """
@@ -120,8 +126,7 @@ async def reindex_document(
 
 @router.post("/summarize", response_model=DocumentSummary)
 async def summarize_document(
-    request: DocumentSummaryRequest,
-    current_user: Annotated[TokenData, Security(get_current_user)]
+    request: DocumentSummaryRequest, current_user: Annotated[TokenData, Security(get_current_user)]
 ):
     """
     Generate AI-powered summary of a document
@@ -160,7 +165,9 @@ async def summarize_document(
         llm_service = LLMService()
 
         if request.summary_type == "brief":
-            prompt = f"""Generate a concise summary (TL;DR) of the following document in {request.max_length} words or less.
+            max_len = request.max_length
+            prompt = f"""Generate a concise summary (TL;DR) of the following \
+document in {max_len} words or less.
 Focus on the most important information that a busy professional needs to know.
 
 Title: {doc_result.get('title', 'Untitled')}
@@ -171,7 +178,9 @@ Content:
 Summary:"""
 
         elif request.summary_type == "detailed":
-            prompt = f"""Generate a comprehensive summary of the following document in approximately {request.max_length} words.
+            max_len = request.max_length
+            prompt = f"""Generate a comprehensive summary of the following \
+document in approximately {max_len} words.
 Include all major points, key arguments, and important details.
 
 Title: {doc_result.get('title', 'Untitled')}
@@ -182,7 +191,9 @@ Content:
 Summary:"""
 
         else:  # key_points
-            prompt = f"""Extract the key points from the following document as a bulleted list (maximum {request.max_length} words total).
+            max_len = request.max_length
+            prompt = f"""Extract the key points from the following document \
+as a bulleted list (maximum {max_len} words total).
 Each point should be concise and actionable.
 
 Title: {doc_result.get('title', 'Untitled')}
@@ -196,7 +207,7 @@ Key Points (as bullet points):"""
         summary_text = await llm_service.generate(
             prompt=prompt,
             max_tokens=min(request.max_length * 2, 1000),  # Rough token estimate
-            temperature=0.3  # Lower temperature for more factual summaries
+            temperature=0.3,  # Lower temperature for more factual summaries
         )
 
         # Parse key points if requested
@@ -221,7 +232,7 @@ Key Points (as bullet points):"""
             summary=summary_text.strip(),
             key_points=key_points,
             model=llm_service.model,
-            generation_time_ms=generation_time_ms
+            generation_time_ms=generation_time_ms,
         )
 
     except HTTPException:

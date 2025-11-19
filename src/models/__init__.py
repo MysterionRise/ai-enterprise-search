@@ -1,8 +1,8 @@
 """Data models for the enterprise search platform"""
 
+from .auth import Token, TokenData, User, UserInDB
 from .documents import Document, DocumentChunk, DocumentMetadata
-from .search import SearchRequest, SearchResponse, SearchResult, SearchFilters
-from .auth import User, UserInDB, Token, TokenData
+from .search import SearchFilters, SearchRequest, SearchResponse, SearchResult
 
 __all__ = [
     "Document",

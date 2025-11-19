@@ -1,11 +1,11 @@
 """Security utilities for authentication and authorization"""
 
 from datetime import datetime, timedelta
-from typing import Optional
+
+from fastapi import HTTPException, Security, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-from fastapi import HTTPException, Security, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from src.core.config import settings
 from src.models.auth import TokenData
@@ -34,7 +34,7 @@ def get_password_hash(password: str) -> str:
     return pwd_context.hash(password_bytes)
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
     """
     Create a JWT access token
 

@@ -1,11 +1,10 @@
 """Unit tests for text processing utilities"""
 
-import pytest
 from src.utils.text_processing import (
-    detect_language,
-    clean_text,
     chunk_text,
+    clean_text,
     compute_hash,
+    detect_language,
     extract_keywords,
     truncate_text,
 )

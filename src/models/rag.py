@@ -2,8 +2,8 @@
 Pydantic models for RAG (Retrieval-Augmented Generation) endpoints
 """
 
+
 from pydantic import BaseModel, Field
-from typing import List, Optional, Dict
 
 
 class RAGRequest(BaseModel):
@@ -31,7 +31,7 @@ class SourceDocument(BaseModel):
     """Source document used to generate RAG answer"""
 
     doc_id: str
-    chunk_id: Optional[str] = None
+    chunk_id: str | None = None
     title: str
     snippet: str
     score: float
@@ -62,15 +62,18 @@ class RAGResponse(BaseModel):
 
     query: str
     answer: str
-    sources: List[SourceDocument]
-    citations: List[Citation] = []
+    sources: list[SourceDocument]
+    citations: list[Citation] = []
     metadata: RAGMetadata
 
     class Config:
         json_schema_extra = {
             "example": {
                 "query": "What is our remote work policy for UK employees?",
-                "answer": "UK employees can work from home up to 3 days per week with manager approval. [Document 1]",
+                "answer": (
+                    "UK employees can work from home up to 3 days per week "
+                    "with manager approval. [Document 1]"
+                ),
                 "sources": [
                     {
                         "doc_id": "sn-kb001",
@@ -104,9 +107,9 @@ class RAGStreamChunk(BaseModel):
     """Streaming chunk for RAG response"""
 
     type: str  # "sources", "token", "done", "error"
-    sources: Optional[List[SourceDocument]] = None
-    token: Optional[str] = None
-    message: Optional[str] = None
+    sources: list[SourceDocument] | None = None
+    token: str | None = None
+    message: str | None = None
 
 
 class RAGHealthResponse(BaseModel):

@@ -1,18 +1,19 @@
 """Main FastAPI application"""
 
 import logging
+import os
 import time
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
+from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
 from starlette.responses import Response
-import os
 
+from src.api.routes import analytics, auth, health, ingest, rag, recommendations, search
 from src.core.config import settings
-from src.api.routes import auth, search, ingest, health, rag, recommendations, analytics
 
 # Configure logging
 logging.basicConfig(
@@ -143,7 +144,7 @@ async def root():
     """Serve the search UI"""
     ui_file = os.path.join(ui_dir, "templates", "index.html")
     if os.path.exists(ui_file):
-        with open(ui_file, "r") as f:
+        with open(ui_file) as f:
             return HTMLResponse(content=f.read())
     return {
         "name": settings.APP_NAME,

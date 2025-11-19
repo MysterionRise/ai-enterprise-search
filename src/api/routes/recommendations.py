@@ -2,19 +2,21 @@
 Recommendation API endpoints
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Query
-from src.models.recommendations import (
-    RelatedDocumentsResponse,
-    TrendingResponse,
-    PopularResponse,
-    PersonalizedRecommendationsResponse,
-    RecommendationItem,
-)
-from src.models.auth import User
-from src.core.security import get_current_user
-from src.services.recommendation_service import RecommendationService
 import logging
 from datetime import datetime
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+
+from src.core.security import get_current_user
+from src.models.auth import User
+from src.models.recommendations import (
+    PersonalizedRecommendationsResponse,
+    PopularResponse,
+    RecommendationItem,
+    RelatedDocumentsResponse,
+    TrendingResponse,
+)
+from src.services.recommendation_service import RecommendationService
 
 logger = logging.getLogger(__name__)
 

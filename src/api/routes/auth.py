@@ -1,18 +1,19 @@
 """Authentication endpoints"""
 
 from datetime import timedelta
-from fastapi import APIRouter, HTTPException, status, Security
 from typing import Annotated
 
-from src.models.auth import LoginRequest, Token, User, UserCreate, TokenData
+from fastapi import APIRouter, HTTPException, Security, status
+
 from src.core.config import settings
+from src.core.database import create_user, get_user_by_email, get_user_by_username
 from src.core.security import (
-    verify_password,
-    get_password_hash,
     create_access_token,
     get_current_user,
+    get_password_hash,
+    verify_password,
 )
-from src.core.database import get_user_by_username, create_user, get_user_by_email
+from src.models.auth import LoginRequest, Token, TokenData, User, UserCreate
 
 router = APIRouter()
 

@@ -1,9 +1,10 @@
 """Pytest configuration and fixtures"""
 
-import pytest
 import os
 import sys
-from typing import Generator, Optional
+from collections.abc import Generator
+
+import pytest
 
 # Add src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
@@ -11,6 +12,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 # Import with error handling for optional dependencies
 try:
     from fastapi.testclient import TestClient
+
     from src.api.main import app
     from src.core.config import settings
 

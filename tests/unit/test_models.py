@@ -1,12 +1,12 @@
 """Unit tests for data models"""
 
+
 import pytest
-from datetime import datetime
 from pydantic import ValidationError
 
+from src.models.auth import Token, User, UserCreate
 from src.models.documents import Document, DocumentChunk, DocumentIngestRequest
-from src.models.search import SearchRequest, SearchFilters
-from src.models.auth import User, UserCreate, Token
+from src.models.search import SearchFilters, SearchRequest
 
 
 class TestDocumentModel:

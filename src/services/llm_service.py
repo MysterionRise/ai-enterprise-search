@@ -3,10 +3,11 @@ LLM Service for RAG answer generation
 Supports: Ollama (local), OpenAI, Anthropic
 """
 
-import httpx
-import os
-from typing import Optional, Dict, AsyncGenerator
 import logging
+import os
+from collections.abc import AsyncGenerator
+
+import httpx
 
 logger = logging.getLogger(__name__)
 

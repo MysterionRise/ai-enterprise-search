@@ -1,19 +1,18 @@
 """Analytics and activity tracking endpoints"""
 
-from fastapi import APIRouter, Depends, HTTPException, Query
-from typing import Annotated
 import logging
-from datetime import datetime, timedelta
-from collections import defaultdict, Counter
 import random
+from datetime import datetime, timedelta
 
+from fastapi import APIRouter, Depends, HTTPException, Query
+
+from src.core.security import get_current_user
 from src.models.analytics import (
-    TrackViewRequest,
     ActivityStats,
     SearchAnalytics,
+    TrackViewRequest,
 )
 from src.models.auth import User
-from src.core.security import get_current_user
 
 router = APIRouter(prefix="/api/v1/analytics", tags=["Analytics"])
 logger = logging.getLogger(__name__)
@@ -25,8 +24,7 @@ search_queries = []  # List of SearchQuery objects
 
 @router.post("/track/view")
 async def track_document_view(
-    request: TrackViewRequest,
-    current_user: User = Depends(get_current_user)
+    request: TrackViewRequest, current_user: User = Depends(get_current_user)
 ):
     """
     Track when a user views a document
@@ -48,7 +46,7 @@ async def track_document_view(
             department=current_user.department,
             country=current_user.country,
             dwell_time_ms=request.dwell_time_ms,
-            source=request.source
+            source=request.source,
         )
 
         document_views.append(view.model_dump())
@@ -62,10 +60,7 @@ async def track_document_view(
 
 
 @router.get("/activity/{doc_id}", response_model=ActivityStats)
-async def get_document_activity(
-    doc_id: str,
-    current_user: User = Depends(get_current_user)
-):
+async def get_document_activity(doc_id: str, current_user: User = Depends(get_current_user)):
     """
     Get real-time activity stats for a document
 
@@ -79,7 +74,6 @@ async def get_document_activity(
         # For demo, generate mock data with some randomness
         # In production, query from analytics tables
 
-        now = datetime.utcnow()
         views_24h = random.randint(5, 50)
         views_7d = views_24h + random.randint(20, 100)
         unique_viewers = random.randint(3, views_24h)
@@ -99,7 +93,7 @@ async def get_document_activity(
             unique_viewers_24h=unique_viewers,
             departments_viewing=active_depts,
             trending_score=trending_score,
-            is_trending=is_trending
+            is_trending=is_trending,
         )
 
     except Exception as e:
@@ -110,7 +104,7 @@ async def get_document_activity(
 @router.get("/dashboard", response_model=SearchAnalytics)
 async def get_search_analytics(
     days: int = Query(default=7, ge=1, le=90, description="Days of analytics data"),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
     """
     Get search analytics dashboard data
@@ -141,27 +135,51 @@ async def get_search_analytics(
 
         # Mock zero-result queries (opportunities!)
         zero_result_queries = [
-            {"query": "pet insurance coverage", "count": 12, "last_searched": "2025-11-17T10:23:00Z"},
-            {"query": "remote work reimbursement", "count": 8, "last_searched": "2025-11-17T14:15:00Z"},
-            {"query": "career development program", "count": 6, "last_searched": "2025-11-16T09:30:00Z"},
+            {
+                "query": "pet insurance coverage",
+                "count": 12,
+                "last_searched": "2025-11-17T10:23:00Z",
+            },
+            {
+                "query": "remote work reimbursement",
+                "count": 8,
+                "last_searched": "2025-11-17T14:15:00Z",
+            },
+            {
+                "query": "career development program",
+                "count": 6,
+                "last_searched": "2025-11-16T09:30:00Z",
+            },
         ]
 
         # Mock search trends (last N days)
         search_trends = []
         for i in range(days):
-            date = (datetime.utcnow() - timedelta(days=days-i-1)).strftime("%Y-%m-%d")
-            search_trends.append({
-                "date": date,
-                "searches": random.randint(50, 200),
-                "unique_users": random.randint(20, 80)
-            })
+            date = (datetime.utcnow() - timedelta(days=days - i - 1)).strftime("%Y-%m-%d")
+            search_trends.append(
+                {
+                    "date": date,
+                    "searches": random.randint(50, 200),
+                    "unique_users": random.randint(20, 80),
+                }
+            )
 
         # Mock popular documents
         popular_documents = [
             {"doc_id": "kb-001", "title": "Remote Work Policy 2024", "views": 456, "dept": "HR"},
             {"doc_id": "kb-002", "title": "Time Off Request Guide", "views": 342, "dept": "HR"},
-            {"doc_id": "kb-003", "title": "Kubernetes Deployment Guide", "views": 234, "dept": "Engineering"},
-            {"doc_id": "kb-004", "title": "Expense Report Process", "views": 198, "dept": "Finance"},
+            {
+                "doc_id": "kb-003",
+                "title": "Kubernetes Deployment Guide",
+                "views": 234,
+                "dept": "Engineering",
+            },
+            {
+                "doc_id": "kb-004",
+                "title": "Expense Report Process",
+                "views": 198,
+                "dept": "Finance",
+            },
             {"doc_id": "kb-005", "title": "Benefits Overview 2024", "views": 187, "dept": "HR"},
         ]
 
@@ -169,7 +187,7 @@ async def get_search_analytics(
             "avg_searches_per_user": 12.3,
             "avg_dwell_time_ms": 45000,
             "bounce_rate": 0.23,
-            "click_through_rate": 0.78
+            "click_through_rate": 0.78,
         }
 
         return SearchAnalytics(
@@ -180,7 +198,7 @@ async def get_search_analytics(
             zero_result_queries=zero_result_queries,
             search_trends=search_trends,
             popular_documents=popular_documents,
-            user_engagement=user_engagement
+            user_engagement=user_engagement,
         )
 
     except Exception as e:
@@ -191,7 +209,7 @@ async def get_search_analytics(
 @router.get("/trending-badges")
 async def get_trending_badges(
     doc_ids: str = Query(..., description="Comma-separated document IDs"),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
     """
     Get trending/activity badges for multiple documents
@@ -216,7 +234,9 @@ async def get_trending_badges(
                 doc_badges.append(f"👥 {views} people viewed today")
 
             if random.random() > 0.7:
-                doc_badges.append("🔥 Trending in " + random.choice(["Engineering", "HR", "Sales", "IT"]))
+                doc_badges.append(
+                    "🔥 Trending in " + random.choice(["Engineering", "HR", "Sales", "IT"])
+                )
 
             if random.random() > 0.8 and current_user.department:
                 doc_badges.append(f"⭐ Popular in {current_user.department}")

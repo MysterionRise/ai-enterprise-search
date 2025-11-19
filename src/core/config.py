@@ -1,6 +1,6 @@
 """Application configuration using Pydantic Settings"""
 
-from typing import List, Optional
+
 from pydantic import Field
 from pydantic_settings import BaseSettings
 
@@ -27,8 +27,8 @@ class Settings(BaseSettings):
     OPENSEARCH_PORT: int = 9200
     OPENSEARCH_USE_SSL: bool = False
     OPENSEARCH_VERIFY_CERTS: bool = False
-    OPENSEARCH_USER: Optional[str] = None
-    OPENSEARCH_PASSWORD: Optional[str] = None
+    OPENSEARCH_USER: str | None = None
+    OPENSEARCH_PASSWORD: str | None = None
     OPENSEARCH_TIMEOUT: int = 30
 
     # Index names
@@ -59,8 +59,8 @@ class Settings(BaseSettings):
         return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
 
     # Celery
-    CELERY_BROKER_URL: Optional[str] = None
-    CELERY_RESULT_BACKEND: Optional[str] = None
+    CELERY_BROKER_URL: str | None = None
+    CELERY_RESULT_BACKEND: str | None = None
 
     @property
     def celery_broker(self) -> str:
@@ -91,11 +91,11 @@ class Settings(BaseSettings):
     CHUNK_OVERLAP: int = 128  # tokens
 
     # Language Detection
-    SUPPORTED_LANGUAGES: List[str] = ["en", "fr", "de", "es", "it", "pt", "nl"]
+    SUPPORTED_LANGUAGES: list[str] = ["en", "fr", "de", "es", "it", "pt", "nl"]
 
     # PII Detection
     ENABLE_PII_DETECTION: bool = True
-    PII_ENTITIES: List[str] = [
+    PII_ENTITIES: list[str] = [
         "PERSON",
         "EMAIL_ADDRESS",
         "PHONE_NUMBER",
@@ -107,7 +107,7 @@ class Settings(BaseSettings):
 
     # File Upload
     MAX_UPLOAD_SIZE: int = 50 * 1024 * 1024  # 50MB
-    ALLOWED_EXTENSIONS: List[str] = [
+    ALLOWED_EXTENSIONS: list[str] = [
         ".pdf",
         ".docx",
         ".doc",
@@ -123,7 +123,7 @@ class Settings(BaseSettings):
     ]
 
     # CORS
-    CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:8000"]
+    CORS_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:8000"]
 
     class Config:
         env_file = ".env"

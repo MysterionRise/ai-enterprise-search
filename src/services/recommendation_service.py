@@ -3,13 +3,10 @@ Recommendation Service
 Provides content-based, collaborative, and trending recommendations
 """
 
-from typing import List, Dict, Optional
-from src.services.opensearch_service import opensearch_service
-from src.models.auth import User
 import logging
-import time
-from datetime import datetime, timedelta
-import random
+
+from src.models.auth import User
+from src.services.opensearch_service import opensearch_service
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +18,7 @@ class RecommendationService:
         self.os_client = opensearch_service.client
         self.chunks_index = "enterprise-chunks"
 
-    async def get_related_documents(self, doc_id: str, user: User, limit: int = 5) -> List[Dict]:
+    async def get_related_documents(self, doc_id: str, user: User, limit: int = 5) -> list[dict]:
         """
         Get documents similar to the given document (content-based filtering)
         Uses vector similarity on embeddings
@@ -136,8 +133,8 @@ class RecommendationService:
             return []
 
     async def get_trending(
-        self, hours: int = 24, limit: int = 10, user: Optional[User] = None
-    ) -> List[Dict]:
+        self, hours: int = 24, limit: int = 10, user: User | None = None
+    ) -> list[dict]:
         """
         Get trending documents (time-decayed popularity)
 
@@ -217,10 +214,10 @@ class RecommendationService:
     async def get_popular_in_department(
         self,
         department: str,
-        country: Optional[str] = None,
+        country: str | None = None,
         days: int = 30,
         limit: int = 10,
-    ) -> List[Dict]:
+    ) -> list[dict]:
         """
         Get most popular documents in a department (collaborative filtering)
 
@@ -249,7 +246,7 @@ class RecommendationService:
                         "view_count": 245,
                         "unique_viewers": 87,
                         "avg_dwell_time_ms": 180000,  # 3 minutes
-                        "reason": f"popular_in_hr",
+                        "reason": "popular_in_hr",
                     },
                     {
                         "doc_id": "sharepoint-recruitment",
@@ -258,7 +255,7 @@ class RecommendationService:
                         "view_count": 198,
                         "unique_viewers": 65,
                         "avg_dwell_time_ms": 240000,  # 4 minutes
-                        "reason": f"popular_in_hr",
+                        "reason": "popular_in_hr",
                     },
                     {
                         "doc_id": "confluence-performance-review",
@@ -267,7 +264,7 @@ class RecommendationService:
                         "view_count": 187,
                         "unique_viewers": 78,
                         "avg_dwell_time_ms": 300000,  # 5 minutes
-                        "reason": f"popular_in_hr",
+                        "reason": "popular_in_hr",
                     },
                 ],
                 "Engineering": [
@@ -333,7 +330,7 @@ class RecommendationService:
             logger.error(f"Failed to get popular documents: {e}", exc_info=True)
             return []
 
-    async def get_personalized_recommendations(self, user: User, limit: int = 10) -> List[Dict]:
+    async def get_personalized_recommendations(self, user: User, limit: int = 10) -> list[dict]:
         """
         Get personalized recommendations for user
         Combines: popular in department + trending + similar to recent views
@@ -377,7 +374,8 @@ class RecommendationService:
                     unique_recommendations.append(rec)
 
             logger.info(
-                f"Generated {len(unique_recommendations)} personalized recommendations for {user.username}"
+                f"Generated {len(unique_recommendations)} personalized "
+                f"recommendations for {user.username}"
             )
             return unique_recommendations[:limit]
 

@@ -1,22 +1,22 @@
 """Document ingestion service"""
 
-from typing import Optional
-from datetime import datetime
 import hashlib
 import logging
+from datetime import datetime
+
 from fastapi import UploadFile
 
+from src.core.config import settings
 from src.models.documents import (
     Document,
     DocumentChunk,
     DocumentIngestRequest,
-    IngestResponse,
     DocumentMetadata,
+    IngestResponse,
 )
 from src.services.opensearch_service import opensearch_service
-from src.utils.text_processing import detect_language, clean_text, chunk_text, compute_hash
 from src.utils.document_parser import document_parser
-from src.core.config import settings
+from src.utils.text_processing import chunk_text, clean_text, compute_hash, detect_language
 
 logger = logging.getLogger(__name__)
 
@@ -100,7 +100,7 @@ class IngestService:
         source_id: str,
         acl_allow: list[str],
         country_tags: list[str],
-        department: Optional[str],
+        department: str | None,
     ) -> IngestResponse:
         """
         Ingest a file upload
@@ -192,7 +192,7 @@ class IngestService:
             return 0
 
         # Prepare chunks for embedding
-        chunk_texts = [chunk_text for _, chunk_text, _, _ in chunks_data]
+        chunk_texts = [text for _, text, _, _ in chunks_data]
 
         # Generate embeddings in batch
         logger.info(f"Generating embeddings for {len(chunk_texts)} chunks")
@@ -201,14 +201,14 @@ class IngestService:
 
         # Create chunk objects
         chunks = []
-        for (chunk_idx, chunk_text, char_start, char_end), embedding in zip(
+        for (chunk_idx, text, char_start, char_end), embedding in zip(
             chunks_data, embeddings
         ):
             chunk = DocumentChunk(
                 chunk_id=f"{document.doc_id}-{chunk_idx}",
                 doc_id=document.doc_id,
                 chunk_idx=chunk_idx,
-                text=chunk_text,
+                text=text,
                 source=document.source,
                 title=document.title,
                 url=document.url,
