@@ -1,13 +1,12 @@
 """Search service with hybrid BM25 + k-NN retrieval"""
 
-from typing import List, Dict, Any, Optional
-from collections import defaultdict
-import time
 import logging
+import time
+from collections import defaultdict
 
-from src.models.search import SearchRequest, SearchResponse, SearchResult, Facet, FacetGroup
-from src.services.opensearch_service import opensearch_service
 from src.core.config import settings
+from src.models.search import Facet, FacetGroup, SearchRequest, SearchResponse, SearchResult
+from src.services.opensearch_service import opensearch_service
 
 logger = logging.getLogger(__name__)
 
@@ -87,8 +86,8 @@ class SearchService:
         )
 
     async def _bm25_search(
-        self, query: str, acl_filter: Dict, filters: List[Dict], size: int, offset: int
-    ) -> tuple[List[SearchResult], int]:
+        self, query: str, acl_filter: dict, filters: list[dict], size: int, offset: int
+    ) -> tuple[list[SearchResult], int]:
         """Execute BM25 text search"""
         search_body = {
             "query": {
@@ -120,15 +119,15 @@ class SearchService:
     async def _hybrid_search(
         self,
         query: str,
-        acl_filter: Dict,
-        filters: List[Dict],
+        acl_filter: dict,
+        filters: list[dict],
         size: int,
         offset: int,
         boost_recency: bool,
         boost_personalization: bool,
-        user_country: Optional[str],
-        user_department: Optional[str],
-    ) -> tuple[List[SearchResult], int]:
+        user_country: str | None,
+        user_department: str | None,
+    ) -> tuple[list[SearchResult], int]:
         """Execute hybrid BM25 + k-NN search with RRF fusion"""
 
         # 1. BM25 Search
@@ -187,7 +186,7 @@ class SearchService:
 
         return results, total
 
-    def _rrf_fusion(self, bm25_hits: List[Dict], knn_hits: List[Dict], k: int = 60) -> List[Dict]:
+    def _rrf_fusion(self, bm25_hits: list[dict], knn_hits: list[dict], k: int = 60) -> list[dict]:
         """
         Reciprocal Rank Fusion
 
@@ -227,8 +226,8 @@ class SearchService:
         return fused
 
     def _apply_personalization_boost(
-        self, results: List[Dict], user_country: Optional[str], user_department: Optional[str]
-    ) -> List[Dict]:
+        self, results: list[dict], user_country: str | None, user_department: str | None
+    ) -> list[dict]:
         """Apply personalization score boosts"""
         for hit in results:
             source = hit["_source"]
@@ -246,7 +245,7 @@ class SearchService:
 
         return results
 
-    def _build_acl_filter(self, user_groups: List[str]) -> Dict:
+    def _build_acl_filter(self, user_groups: list[str]) -> dict:
         """Build ACL filter for security trimming"""
         if not user_groups:
             user_groups = ["all-employees"]
@@ -258,7 +257,7 @@ class SearchService:
             }
         }
 
-    def _build_filters(self, request: SearchRequest) -> List[Dict]:
+    def _build_filters(self, request: SearchRequest) -> list[dict]:
         """Build OpenSearch filters from search request"""
         filters = []
 
@@ -290,7 +289,7 @@ class SearchService:
 
         return filters
 
-    def _format_results(self, response: Dict) -> List[SearchResult]:
+    def _format_results(self, response: dict) -> list[SearchResult]:
         """Format OpenSearch response to SearchResult models"""
         results = []
 
@@ -327,8 +326,8 @@ class SearchService:
         return results
 
     async def _get_facets(
-        self, query: str, acl_filter: Dict, filters: List[Dict]
-    ) -> List[FacetGroup]:
+        self, query: str, acl_filter: dict, filters: list[dict]
+    ) -> list[FacetGroup]:
         """Get facets for filtering"""
         # Build aggregations query
         agg_body = {
@@ -366,7 +365,7 @@ class SearchService:
 
         return facet_groups
 
-    def _extract_applied_filters(self, request: SearchRequest) -> Dict[str, List[str]]:
+    def _extract_applied_filters(self, request: SearchRequest) -> dict[str, list[str]]:
         """Extract applied filters for display"""
         applied = {}
         if request.filters:
@@ -378,7 +377,7 @@ class SearchService:
                 applied["countries"] = request.filters.countries
         return applied
 
-    async def get_suggestions(self, query: str, size: int = 5) -> List[str]:
+    async def get_suggestions(self, query: str, size: int = 5) -> list[str]:
         """Get autocomplete suggestions"""
         # Simple implementation - in production, use completion suggester
         # For now, return popular queries from search_queries table

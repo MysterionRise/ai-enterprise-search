@@ -1,7 +1,6 @@
 """Test configuration and utilities"""
 
 import os
-import pytest
 
 # Test configuration
 TEST_ENV = {

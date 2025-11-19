@@ -1,16 +1,18 @@
 """Unit tests for security utilities"""
 
-import pytest
 from datetime import timedelta
+
+import pytest
+from fastapi import HTTPException
+
 from src.core.security import (
-    verify_password,
-    get_password_hash,
+    check_permission,
     create_access_token,
     decode_token,
-    check_permission,
+    get_password_hash,
+    verify_password,
 )
 from src.models.auth import TokenData
-from fastapi import HTTPException
 
 
 class TestPasswordHashing:

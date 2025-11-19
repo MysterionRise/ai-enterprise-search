@@ -3,10 +3,12 @@ Unit tests for RecommendationService
 Tests the recommendation logic without requiring external services
 """
 
+from unittest.mock import Mock, patch
+
 import pytest
-from unittest.mock import Mock, AsyncMock, patch
-from src.services.recommendation_service import RecommendationService
+
 from src.models.auth import User
+from src.services.recommendation_service import RecommendationService
 
 
 @pytest.fixture

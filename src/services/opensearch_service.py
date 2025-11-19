@@ -1,8 +1,9 @@
 """OpenSearch client and index management"""
 
-from typing import Optional, Dict, Any, List
-from opensearchpy import OpenSearch, helpers
 import logging
+from typing import Any
+
+from opensearchpy import OpenSearch, helpers
 
 from src.core.config import settings
 
@@ -26,7 +27,7 @@ class OpenSearchService:
             timeout=settings.OPENSEARCH_TIMEOUT,
         )
 
-    def create_documents_index(self, index_name: Optional[str] = None) -> bool:
+    def create_documents_index(self, index_name: str | None = None) -> bool:
         """
         Create the documents index with BM25 text fields
 
@@ -111,7 +112,7 @@ class OpenSearchService:
         logger.info(f"Created index {index_name}")
         return True
 
-    def create_chunks_index(self, index_name: Optional[str] = None) -> bool:
+    def create_chunks_index(self, index_name: str | None = None) -> bool:
         """
         Create the chunks index with k-NN vectors for semantic search
 
@@ -184,9 +185,7 @@ class OpenSearchService:
         self.create_chunks_index()
         logger.info("All indices initialized")
 
-    def bulk_index_documents(
-        self, documents: List[Dict[str, Any]], index_name: Optional[str] = None
-    ):
+    def bulk_index_documents(self, documents: list[dict[str, Any]], index_name: str | None = None):
         """
         Bulk index documents
 
@@ -204,7 +203,7 @@ class OpenSearchService:
         logger.info(f"Bulk indexed {success} documents, {failed} failed")
         return success, failed
 
-    def bulk_index_chunks(self, chunks: List[Dict[str, Any]], index_name: Optional[str] = None):
+    def bulk_index_chunks(self, chunks: list[dict[str, Any]], index_name: str | None = None):
         """
         Bulk index document chunks
 
@@ -235,13 +234,53 @@ class OpenSearchService:
         self.client.delete_by_query(index=settings.CHUNKS_INDEX, body=query)
         logger.info(f"Deleted document {doc_id} and its chunks")
 
-    def get_cluster_health(self) -> Dict[str, Any]:
+    def get_cluster_health(self) -> dict[str, Any]:
         """Get OpenSearch cluster health"""
         return self.client.cluster.health()
 
-    def get_index_stats(self, index_name: str) -> Dict[str, Any]:
+    def get_index_stats(self, index_name: str) -> dict[str, Any]:
         """Get statistics for an index"""
         return self.client.indices.stats(index=index_name)
+
+    async def get_document(self, doc_id: str) -> dict[str, Any] | None:
+        """
+        Get a document by ID from the documents index
+
+        Args:
+            doc_id: Document ID to retrieve
+
+        Returns:
+            Document data dict or None if not found
+        """
+        try:
+            response = self.client.get(index=settings.DOCUMENTS_INDEX, id=doc_id)
+            return response["_source"]
+        except Exception as e:
+            logger.warning(f"Document {doc_id} not found: {e}")
+            return None
+
+    async def get_document_chunks(self, doc_id: str, limit: int = 100) -> list[dict[str, Any]]:
+        """
+        Get all chunks for a document
+
+        Args:
+            doc_id: Parent document ID
+            limit: Maximum number of chunks to return
+
+        Returns:
+            List of chunk data dicts
+        """
+        try:
+            query = {
+                "query": {"term": {"doc_id": doc_id}},
+                "sort": [{"chunk_idx": "asc"}],
+                "size": limit,
+            }
+            response = self.client.search(index=settings.CHUNKS_INDEX, body=query)
+            return [hit["_source"] for hit in response["hits"]["hits"]]
+        except Exception as e:
+            logger.error(f"Failed to get chunks for doc {doc_id}: {e}")
+            return []
 
 
 # Global instance

@@ -1,10 +1,10 @@
 """Text processing utilities"""
 
-from typing import List, Tuple
-import re
 import hashlib
-from langdetect import detect, LangDetectException
 import logging
+import re
+
+from langdetect import LangDetectException, detect
 
 from src.core.config import settings
 
@@ -63,7 +63,7 @@ def clean_text(text: str) -> str:
 
 def chunk_text(
     text: str, chunk_size: int = None, chunk_overlap: int = None, doc_id: str = None
-) -> List[Tuple[int, str, int, int]]:
+) -> list[tuple[int, str, int, int]]:
     """
     Split text into overlapping chunks
 
@@ -111,7 +111,8 @@ def chunk_text(
         start_word += chunk_size - chunk_overlap
 
     logger.info(
-        f"Split document into {len(chunks)} chunks (chunk_size={chunk_size}, overlap={chunk_overlap})"
+        f"Split document into {len(chunks)} chunks "
+        f"(chunk_size={chunk_size}, overlap={chunk_overlap})"
     )
     return chunks
 
@@ -129,7 +130,7 @@ def compute_hash(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
-def extract_keywords(text: str, max_keywords: int = 10) -> List[str]:
+def extract_keywords(text: str, max_keywords: int = 10) -> list[str]:
     """
     Extract keywords from text (simple implementation)
 

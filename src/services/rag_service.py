@@ -3,14 +3,14 @@ Retrieval-Augmented Generation (RAG) Service
 Combines search results with LLM to generate answers
 """
 
-from typing import List, Dict, Optional
-from src.services.search_service import SearchService
-from src.services.llm_service import LLMService
-from src.models.search import SearchRequest
-from src.models.auth import User
 import logging
-import time
 import re
+import time
+
+from src.models.auth import User
+from src.models.search import SearchRequest
+from src.services.llm_service import LLMService
+from src.services.search_service import SearchService
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ class RAGService:
 
     async def generate_answer(
         self, query: str, user: User, num_chunks: int = 5, temperature: float = 0.3
-    ) -> Dict:
+    ) -> dict:
         """
         Generate answer to query using RAG pipeline
 
@@ -63,7 +63,10 @@ class RAGService:
             logger.warning(f"RAG: No results found for query: {query}")
             return {
                 "query": query,
-                "answer": "I couldn't find any relevant documents to answer your question. Please try rephrasing your query or contact support for assistance.",
+                "answer": (
+                    "I couldn't find any relevant documents to answer your question. "
+                    "Please try rephrasing your query or contact support for assistance."
+                ),
                 "sources": [],
                 "citations": [],
                 "metadata": {
@@ -109,9 +112,8 @@ class RAGService:
         # Step 5: Extract citations from answer
         citations = self._extract_citations(answer, context_chunks)
 
-        logger.info(
-            f"RAG: Answer generated successfully in {(generation_time - retrieval_time) * 1000:.0f}ms"
-        )
+        gen_time_ms = (generation_time - retrieval_time) * 1000
+        logger.info(f"RAG: Answer generated successfully in {gen_time_ms:.0f}ms")
 
         return {
             "query": query,
@@ -138,7 +140,7 @@ class RAGService:
             },
         }
 
-    def _build_context(self, chunks: List) -> str:
+    def _build_context(self, chunks: list) -> str:
         """
         Build context string from retrieved chunks
 
@@ -159,7 +161,7 @@ class RAGService:
 
         return "\n".join(context_parts)
 
-    def _build_prompt(self, query: str, context: str, user_context: Dict) -> str:
+    def _build_prompt(self, query: str, context: str, user_context: dict) -> str:
         """
         Build prompt for LLM with retrieved context
 
@@ -172,7 +174,8 @@ class RAGService:
             Complete prompt for LLM
         """
         # System instructions
-        system = """You are an AI assistant helping employees find information from company documents.
+        system = """You are an AI assistant helping employees find information from \
+company documents.
 Your role is to provide accurate, helpful answers based ONLY on the provided documents.
 
 Key Guidelines:
@@ -203,13 +206,14 @@ Question: {query}
 Relevant Documents:
 {context}
 
-Please provide a helpful answer to the question based on the documents above. Remember to cite sources using [Document N] notation.
+Please provide a helpful answer to the question based on the documents above. \
+Remember to cite sources using [Document N] notation.
 
 Answer:"""
 
         return prompt
 
-    def _extract_citations(self, answer: str, chunks: List) -> List[Dict]:
+    def _extract_citations(self, answer: str, chunks: list) -> list[dict]:
         """
         Extract which documents were cited in the answer
 

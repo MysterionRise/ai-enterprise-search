@@ -1,10 +1,11 @@
 """Health check endpoints"""
 
-from fastapi import APIRouter, status
-from pydantic import BaseModel
 from datetime import datetime
+
 import psycopg2
+from fastapi import APIRouter, status
 from opensearchpy import OpenSearch
+from pydantic import BaseModel
 
 from src.core.config import settings
 

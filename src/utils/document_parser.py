@@ -1,12 +1,13 @@
 """Document parsing utilities using Tika and OCR"""
 
-from typing import Optional, Dict, Any
 import logging
-import requests
 from io import BytesIO
+from typing import Any
+
 import magic
-from PIL import Image
 import pytesseract
+import requests
+from PIL import Image
 
 from src.core.config import settings
 
@@ -19,7 +20,7 @@ class DocumentParser:
     def __init__(self):
         self.tika_url = settings.TIKA_SERVER_URL
 
-    def parse_file(self, file_content: bytes, filename: str) -> Dict[str, Any]:
+    def parse_file(self, file_content: bytes, filename: str) -> dict[str, Any]:
         """
         Parse file content using Apache Tika
 
@@ -63,7 +64,7 @@ class DocumentParser:
             logger.warning(f"MIME detection failed: {e}")
             return "application/octet-stream"
 
-    def _parse_with_tika(self, content: bytes, filename: str) -> Dict[str, Any]:
+    def _parse_with_tika(self, content: bytes, filename: str) -> dict[str, Any]:
         """
         Parse document using Apache Tika Server
 
@@ -137,7 +138,7 @@ class DocumentParser:
             logger.error(f"OCR failed: {e}")
             return ""
 
-    def parse_text(self, text: str, content_type: str = "text/plain") -> Dict[str, Any]:
+    def parse_text(self, text: str, content_type: str = "text/plain") -> dict[str, Any]:
         """
         Parse plain text content
 

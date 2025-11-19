@@ -2,21 +2,23 @@
 RAG (Retrieval-Augmented Generation) API endpoints
 """
 
+import json
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
+
+from src.core.security import get_current_user
+from src.models.auth import User
 from src.models.rag import (
+    Citation,
+    RAGHealthResponse,
+    RAGMetadata,
     RAGRequest,
     RAGResponse,
-    RAGHealthResponse,
     SourceDocument,
-    Citation,
-    RAGMetadata,
 )
-from src.models.auth import User
-from src.core.security import get_current_user
 from src.services.rag_service import RAGService
-import logging
-import json
 
 logger = logging.getLogger(__name__)
 

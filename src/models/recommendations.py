@@ -2,8 +2,7 @@
 Pydantic models for Recommendation endpoints
 """
 
-from pydantic import BaseModel, Field
-from typing import List, Optional
+from pydantic import BaseModel
 
 
 class RecommendationItem(BaseModel):
@@ -12,19 +11,19 @@ class RecommendationItem(BaseModel):
     doc_id: str
     title: str
     source: str
-    score: Optional[float] = None
+    score: float | None = None
     reason: str  # "similar_content", "trending", "popular_in_hr", etc.
-    view_count: Optional[int] = None
-    unique_viewers: Optional[int] = None
-    trend_score: Optional[float] = None
-    age_hours: Optional[float] = None
+    view_count: int | None = None
+    unique_viewers: int | None = None
+    trend_score: float | None = None
+    age_hours: float | None = None
 
 
 class RelatedDocumentsResponse(BaseModel):
     """Response for related documents endpoint"""
 
     doc_id: str
-    related: List[RecommendationItem]
+    related: list[RecommendationItem]
     count: int
 
     class Config:
@@ -48,7 +47,7 @@ class RelatedDocumentsResponse(BaseModel):
 class TrendingResponse(BaseModel):
     """Response for trending documents endpoint"""
 
-    trending: List[RecommendationItem]
+    trending: list[RecommendationItem]
     time_window_hours: int
     count: int
     last_updated: str
@@ -77,9 +76,9 @@ class TrendingResponse(BaseModel):
 class PopularResponse(BaseModel):
     """Response for popular documents endpoint"""
 
-    popular: List[RecommendationItem]
+    popular: list[RecommendationItem]
     department: str
-    country: Optional[str] = None
+    country: str | None = None
     period_days: int
     count: int
 
@@ -107,7 +106,7 @@ class PopularResponse(BaseModel):
 class PersonalizedRecommendationsResponse(BaseModel):
     """Response for personalized recommendations endpoint"""
 
-    recommendations: List[RecommendationItem]
+    recommendations: list[RecommendationItem]
     personalization_context: dict
     count: int
 

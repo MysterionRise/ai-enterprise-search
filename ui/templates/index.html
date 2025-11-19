@@ -5,6 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Enterprise Search</title>
     <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f7fafc;
+            --bg-tertiary: #edf2f7;
+            --bg-page: #f5f7fa;
+            --text-primary: #1a202c;
+            --text-secondary: #4a5568;
+            --text-tertiary: #718096;
+            --border-color: #e2e8f0;
+            --accent-color: #4299e1;
+            --accent-hover: #3182ce;
+            --success-color: #48bb78;
+            --error-color: #f56565;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1a202c;
+            --bg-secondary: #2d3748;
+            --bg-tertiary: #4a5568;
+            --bg-page: #0f1419;
+            --text-primary: #f7fafc;
+            --text-secondary: #e2e8f0;
+            --text-tertiary: #cbd5e0;
+            --border-color: #4a5568;
+            --accent-color: #63b3ed;
+            --accent-hover: #4299e1;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.3);
+            --shadow-lg: 0 10px 15px rgba(0,0,0,0.4);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -12,8 +47,9 @@
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: #f5f7fa;
-            color: #333;
+            background: var(--bg-page);
+            color: var(--text-primary);
+            transition: var(--transition);
         }
         .container {
             max-width: 900px;
@@ -26,102 +62,205 @@
         }
         .header h1 {
             font-size: 32px;
-            color: #1a202c;
+            color: var(--text-primary);
             margin-bottom: 8px;
         }
         .header p {
-            color: #718096;
+            color: var(--text-tertiary);
+        }
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 16px;
+            background: var(--bg-primary);
+            border: 2px solid var(--border-color);
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 20px;
+            box-shadow: var(--shadow-md);
+            transition: var(--transition);
+            z-index: 1000;
+        }
+        .theme-toggle:hover {
+            transform: scale(1.1) rotate(15deg);
+            box-shadow: var(--shadow-lg);
         }
         .auth-section {
-            background: white;
+            background: var(--bg-primary);
             padding: 24px;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
             margin-bottom: 24px;
+            transition: var(--transition);
+        }
+        .auth-section:hover {
+            box-shadow: var(--shadow-lg);
         }
         .search-box {
-            background: white;
+            background: var(--bg-primary);
             padding: 24px;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
             margin-bottom: 24px;
+            transition: var(--transition);
         }
         .search-input {
             width: 100%;
             padding: 16px;
             font-size: 16px;
-            border: 2px solid #e2e8f0;
-            border-radius: 6px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
             margin-bottom: 12px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: var(--transition);
         }
         .search-input:focus {
             outline: none;
-            border-color: #4299e1;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
         }
         .btn {
             padding: 12px 24px;
             font-size: 16px;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: 500;
+            transition: var(--transition);
         }
         .btn-primary {
-            background: #4299e1;
+            background: var(--accent-color);
             color: white;
         }
         .btn-primary:hover {
-            background: #3182ce;
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
         }
         .btn-secondary {
-            background: #718096;
+            background: var(--text-tertiary);
             color: white;
             margin-left: 8px;
         }
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
         .results {
-            background: white;
+            background: var(--bg-primary);
             padding: 24px;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+            transition: var(--transition);
         }
         .result-item {
             padding: 16px 0;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid var(--border-color);
+            transition: var(--transition);
         }
         .result-item:last-child {
             border-bottom: none;
         }
+        .result-item:hover {
+            background: var(--bg-secondary);
+            margin: 0 -12px;
+            padding: 16px 12px;
+            border-radius: 8px;
+        }
         .result-title {
             font-size: 18px;
-            color: #2b6cb0;
+            color: var(--accent-color);
             margin-bottom: 8px;
             cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
         }
         .result-title:hover {
+            color: var(--accent-hover);
             text-decoration: underline;
         }
         .result-snippet {
-            color: #4a5568;
+            color: var(--text-secondary);
             line-height: 1.6;
             margin-bottom: 8px;
         }
         .result-meta {
             font-size: 13px;
-            color: #718096;
+            color: var(--text-tertiary);
+        }
+        .result-actions {
+            margin-top: 12px;
+            display: flex;
+            gap: 8px;
+        }
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 13px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .btn-summarize {
+            background: #667eea;
+            color: white;
+        }
+        .btn-summarize:hover {
+            background: #5568d3;
+        }
+        .summary-section {
+            background: var(--bg-secondary);
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 12px;
+            border-left: 3px solid #667eea;
+            display: none;
+            animation: fadeIn 0.3s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .summary-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .summary-text {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-top: 8px;
+        }
+        .key-points-list {
+            margin-top: 12px;
+            padding-left: 20px;
+        }
+        .key-points-list li {
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            line-height: 1.5;
         }
         .badge {
             display: inline-block;
             padding: 4px 8px;
-            background: #edf2f7;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
             border-radius: 4px;
             font-size: 12px;
             margin-right: 8px;
+            transition: var(--transition);
         }
         .facets {
-            background: white;
+            background: var(--bg-primary);
             padding: 16px;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
             margin-bottom: 24px;
         }
         .facet-group {
@@ -178,10 +317,20 @@
     </style>
 </head>
 <body>
+    <!-- Dark Mode Toggle -->
+    <button class="theme-toggle" onclick="toggleTheme()" id="theme-toggle" title="Toggle dark mode">
+        🌙
+    </button>
+
     <div class="container">
         <div class="header">
             <h1>🔍 Enterprise Search</h1>
             <p>Secure, multilingual, context-aware search platform</p>
+            <div style="margin-top: 16px; padding: 12px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white; border-radius: 24px; display: inline-block; font-size: 14px; font-weight: 500;
+                        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);">
+                ⚡ Powered by OpenSearch 3.0 - 9.5x Faster Performance
+            </div>
         </div>
 
         <div id="auth-section" class="auth-section">
@@ -208,6 +357,9 @@
             <div class="search-box">
                 <input type="text" class="search-input" id="search-query" placeholder="Search for documents..." onkeypress="handleKeyPress(event)">
                 <button class="btn btn-primary" onclick="search()">Search</button>
+                <button class="btn btn-secondary" onclick="showAnalytics()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    📊 Analytics
+                </button>
                 <button class="btn btn-secondary" onclick="logout()">Logout</button>
                 <div class="user-info" id="user-info"></div>
             </div>
@@ -272,6 +424,39 @@
                 </div>
             </div>
         </div>
+
+        <!-- Analytics Dashboard Modal -->
+        <div id="analytics-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; overflow-y: auto;">
+            <div style="max-width: 1200px; margin: 40px auto; background: var(--bg-primary); border-radius: 12px; padding: 32px; box-shadow: var(--shadow-lg);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <h2 style="color: var(--text-primary); margin: 0;">📊 Search Analytics Dashboard</h2>
+                    <button onclick="closeAnalytics()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-tertiary);">✕</button>
+                </div>
+
+                <div id="analytics-content">
+                    <div class="loading" style="text-align: center; padding: 40px;">
+                        <div class="spinner"></div>
+                        <span>Loading analytics...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Document Preview Modal -->
+        <div id="preview-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 2000;">
+            <div style="max-width: 90%; max-height: 90%; margin: 2% auto; background: var(--bg-primary); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-lg); display: flex; flex-direction: column;">
+                <div style="padding: 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="color: var(--text-primary); margin: 0;" id="preview-title">Document Preview</h3>
+                    <button onclick="closePreview()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-tertiary);">✕</button>
+                </div>
+                <div id="preview-content" style="flex: 1; overflow: auto; padding: 20px; background: var(--bg-secondary);">
+                    <div class="loading" style="text-align: center; padding: 40px;">
+                        <div class="spinner"></div>
+                        <span>Loading preview...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <style>
@@ -315,11 +500,91 @@
         .ask-ai-btn:active {
             transform: translateY(0);
         }
+
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .analytics-card {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .analytics-card h3 {
+            font-size: 14px;
+            color: var(--text-tertiary);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .analytics-card .value {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--text-primary);
+        }
+
+        .analytics-card .subtext {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .query-list {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .query-item {
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .query-item:last-child {
+            border-bottom: none;
+        }
+
+        .query-text {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .query-count {
+            color: var(--accent-color);
+            font-weight: 600;
+        }
     </style>
 
     <script>
         const API_URL = 'http://localhost:8000/api/v1';
         let authToken = localStorage.getItem('authToken');
+
+        // Dark Mode functionality
+        const theme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+        updateThemeIcon(theme);
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        }
+
+        function updateThemeIcon(theme) {
+            const toggle = document.getElementById('theme-toggle');
+            toggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+        }
 
         // Check if already logged in
         if (authToken) {
@@ -416,7 +681,23 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    displayResults(data);
+                    // Fetch activity badges for results
+                    const docIds = data.results.map(r => r.doc_id).join(',');
+                    let badges = {};
+
+                    try {
+                        const badgesResponse = await fetch(`${API_URL}/analytics/trending-badges?doc_ids=${docIds}`, {
+                            headers: {'Authorization': `Bearer ${authToken}`}
+                        });
+                        if (badgesResponse.ok) {
+                            const badgesData = await badgesResponse.json();
+                            badges = badgesData.badges || {};
+                        }
+                    } catch (e) {
+                        console.warn('Failed to load badges:', e);
+                    }
+
+                    displayResults(data, badges);
                     displayFacets(data.facets || []);
                 } else {
                     resultsContainer.innerHTML = `<div class="error">Search failed: ${data.detail}</div>`;
@@ -426,7 +707,7 @@
             }
         }
 
-        function displayResults(data) {
+        function displayResults(data, badges = {}) {
             const resultsContainer = document.getElementById('results-container');
 
             if (data.results.length === 0) {
@@ -440,24 +721,50 @@
 
             let html = `
                 <div class="results">
-                    <p style="margin-bottom: 16px; color: #718096;">
-                        Found ${data.total} results in ${data.took_ms}ms
-                        ${data.personalized ? '(Personalized for your location and department)' : ''}
+                    <p style="margin-bottom: 16px; color: var(--text-tertiary);">
+                        Found <strong>${data.total}</strong> results in <strong>${data.took_ms}ms</strong>
+                        ${data.personalized ? '<span style="color: var(--success-color);">✓ Personalized for you</span>' : ''}
                     </p>
             `;
 
-            data.results.forEach(result => {
+            data.results.forEach((result, index) => {
+                const resultId = `result-${index}`;
+                const resultBadges = badges[result.doc_id] || [];
+
                 html += `
-                    <div class="result-item">
+                    <div class="result-item" id="${resultId}">
                         <div class="result-title" onclick="window.open('${result.url || '#'}', '_blank')">
                             ${result.title}
                         </div>
+                        ${resultBadges.length > 0 ? `
+                        <div style="margin: 8px 0; display: flex; gap: 8px; flex-wrap: wrap;">
+                            ${resultBadges.map(badge => `
+                                <span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                             color: white; padding: 4px 12px; border-radius: 12px;
+                                             font-size: 12px; font-weight: 500; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">${badge}</span>
+                            `).join('')}
+                        </div>
+                        ` : ''}
                         <div class="result-snippet">${result.snippet}</div>
                         <div class="result-meta">
                             <span class="badge">${result.source}</span>
                             <span class="badge">${result.language}</span>
                             ${result.country_tags.map(c => `<span class="badge">${c}</span>`).join('')}
                             <span style="margin-left: 8px;">Score: ${result.score.toFixed(3)}</span>
+                        </div>
+                        <div class="result-actions">
+                            <button class="btn-small btn-summarize" onclick="summarizeDocument('${result.doc_id}', '${resultId}', 'brief')">
+                                ✨ TL;DR
+                            </button>
+                            <button class="btn-small btn-summarize" onclick="summarizeDocument('${result.doc_id}', '${resultId}', 'key_points')">
+                                📌 Key Points
+                            </button>
+                            <button class="btn-small" style="background: #48bb78; color: white;" onclick="showPreview('${result.doc_id}', '${result.title.replace(/'/g, "\\'")}', '${result.url || ''}')">
+                                👁️ Preview
+                            </button>
+                        </div>
+                        <div class="summary-section" id="${resultId}-summary">
+                            <!-- Summary will be loaded here -->
                         </div>
                     </div>
                 `;
@@ -745,6 +1052,229 @@
 
             // Load recommendations after showing search section
             setTimeout(loadRecommendations, 500);
+        }
+
+        // Analytics Dashboard
+        async function showAnalytics() {
+            const modal = document.getElementById('analytics-modal');
+            const content = document.getElementById('analytics-content');
+
+            modal.style.display = 'block';
+            content.innerHTML = '<div class="loading" style="text-align: center; padding: 40px;"><div class="spinner"></div><span>Loading analytics...</span></div>';
+
+            try {
+                const response = await fetch(`${API_URL}/analytics/dashboard?days=7`, {
+                    headers: {'Authorization': `Bearer ${authToken}`}
+                });
+
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                const data = await response.json();
+
+                // Build analytics HTML
+                let html = `
+                    <div class="analytics-grid">
+                        <div class="analytics-card">
+                            <h3>Total Searches</h3>
+                            <div class="value">${data.total_searches.toLocaleString()}</div>
+                            <div class="subtext">Last 7 days</div>
+                        </div>
+                        <div class="analytics-card">
+                            <h3>Total Documents</h3>
+                            <div class="value">${data.total_documents.toLocaleString()}</div>
+                            <div class="subtext">In index</div>
+                        </div>
+                        <div class="analytics-card">
+                            <h3>Avg Response Time</h3>
+                            <div class="value">${data.avg_response_time_ms.toFixed(1)}ms</div>
+                            <div class="subtext">Fast & efficient</div>
+                        </div>
+                        <div class="analytics-card">
+                            <h3>Click-Through Rate</h3>
+                            <div class="value">${(data.user_engagement.click_through_rate * 100).toFixed(0)}%</div>
+                            <div class="subtext">User engagement</div>
+                        </div>
+                    </div>
+
+                    <h3 style="color: var(--text-primary); margin: 24px 0 16px 0;">🔥 Top Search Queries</h3>
+                    <div class="query-list">
+                        ${data.top_queries.map(q => `
+                            <div class="query-item">
+                                <span class="query-text">"${q.query}"</span>
+                                <div>
+                                    <span class="query-count">${q.count} searches</span>
+                                    <span style="margin-left: 12px; color: var(--text-tertiary); font-size: 13px;">
+                                        CTR: ${(q.avg_ctr * 100).toFixed(0)}%
+                                    </span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <h3 style="color: var(--text-primary); margin: 24px 0 16px 0;">⚠️ Zero Result Queries (Opportunities)</h3>
+                    <div class="query-list">
+                        ${data.zero_result_queries.length > 0 ? data.zero_result_queries.map(q => `
+                            <div class="query-item">
+                                <span class="query-text" style="color: var(--error-color);">"${q.query}"</span>
+                                <span style="color: var(--text-tertiary); font-size: 13px;">${q.count} attempts</span>
+                            </div>
+                        `).join('') : '<p style="color: var(--text-tertiary); padding: 12px;">No zero-result queries - great!</p>'}
+                    </div>
+
+                    <h3 style="color: var(--text-primary); margin: 24px 0 16px 0;">📈 Popular Documents</h3>
+                    <div class="query-list">
+                        ${data.popular_documents.map(doc => `
+                            <div class="query-item">
+                                <span class="query-text">${doc.title}</span>
+                                <div>
+                                    <span class="badge" style="background: var(--bg-tertiary);">${doc.dept}</span>
+                                    <span class="query-count" style="margin-left: 8px;">${doc.views} views</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+
+                content.innerHTML = html;
+
+            } catch (error) {
+                console.error('Failed to load analytics:', error);
+                content.innerHTML = `
+                    <div style="color: var(--error-color); text-align: center; padding: 40px;">
+                        <h3>❌ Failed to Load Analytics</h3>
+                        <p style="margin-top: 12px;">${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function closeAnalytics() {
+            document.getElementById('analytics-modal').style.display = 'none';
+        }
+
+        // Document Preview
+        function showPreview(docId, title, url) {
+            const modal = document.getElementById('preview-modal');
+            const titleEl = document.getElementById('preview-title');
+            const content = document.getElementById('preview-content');
+
+            modal.style.display = 'block';
+            titleEl.textContent = title || 'Document Preview';
+
+            // For demo, show a message
+            // In production, would integrate PDF.js or iframe for actual document
+            content.innerHTML = `
+                <div style="text-align: center; padding: 40px;">
+                    <h3 style="color: var(--text-primary); margin-bottom: 16px;">📄 Document Preview</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 24px;">
+                        <strong>${title}</strong>
+                    </p>
+                    <p style="color: var(--text-tertiary); margin-bottom: 16px;">
+                        Full document preview would be displayed here using PDF.js
+                    </p>
+                    ${url ? `
+                        <a href="${url}" target="_blank" class="btn btn-primary" style="display: inline-block; margin-top: 16px;">
+                            Open Original Document →
+                        </a>
+                    ` : ''}
+                    <div style="margin-top: 32px; padding: 24px; background: var(--bg-primary); border-radius: 8px; text-align: left;">
+                        <h4 style="color: var(--text-primary); margin-bottom: 12px;">🔧 Integration Ready</h4>
+                        <p style="color: var(--text-secondary); font-size: 14px; line-height: 1.6;">
+                            To enable full PDF preview, integrate PDF.js:<br>
+                            • npm install pdfjs-dist<br>
+                            • Configure viewer component<br>
+                            • Render documents in iframe or canvas
+                        </p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function closePreview() {
+            document.getElementById('preview-modal').style.display = 'none';
+        }
+
+        // Document Summarization
+        async function summarizeDocument(docId, resultId, summaryType) {
+            const summarySection = document.getElementById(`${resultId}-summary`);
+
+            // Show loading state
+            summarySection.style.display = 'block';
+            summarySection.innerHTML = `
+                <div class="summary-title">
+                    <span>${summaryType === 'brief' ? '✨ TL;DR' : '📌 Key Points'}</span>
+                    <span style="font-size: 13px; font-weight: normal; color: #718096;">Generating...</span>
+                </div>
+                <div class="loading" style="padding: 20px;">
+                    <div class="spinner"></div>
+                    <span>AI is analyzing the document...</span>
+                </div>
+            `;
+
+            try {
+                const response = await fetch(`${API_URL}/ingest/summarize`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        doc_id: docId,
+                        summary_type: summaryType,
+                        max_length: summaryType === 'brief' ? 100 : 150
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                // Display summary
+                let html = `
+                    <div class="summary-title">
+                        <span>${summaryType === 'brief' ? '✨ TL;DR' : '📌 Key Points'}</span>
+                        <span style="font-size: 12px; font-weight: normal; color: #718096;">
+                            Generated in ${data.generation_time_ms.toFixed(0)}ms
+                        </span>
+                    </div>
+                `;
+
+                if (summaryType === 'key_points' && data.key_points && data.key_points.length > 0) {
+                    html += `
+                        <ul class="key-points-list">
+                            ${data.key_points.map(point => `<li>${point}</li>`).join('')}
+                        </ul>
+                    `;
+                } else {
+                    html += `<div class="summary-text">${data.summary}</div>`;
+                }
+
+                html += `
+                    <div style="margin-top: 12px; font-size: 12px; color: #718096;">
+                        Powered by ${data.model}
+                    </div>
+                `;
+
+                summarySection.innerHTML = html;
+
+            } catch (error) {
+                console.error('Summarization failed:', error);
+                summarySection.innerHTML = `
+                    <div class="summary-title">
+                        <span style="color: #f56565;">❌ Summarization Failed</span>
+                    </div>
+                    <div style="color: #c53030; margin-top: 8px;">
+                        ${error.message}<br><br>
+                        <span style="font-size: 13px;">
+                            Make sure the LLM service is running:<br>
+                            • Ollama: <code>ollama serve</code><br>
+                            • Model: <code>ollama pull llama3.1:8b-instruct-q4_0</code>
+                        </span>
+                    </div>
+                `;
+            }
         }
     </script>
 </body>

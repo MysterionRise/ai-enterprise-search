@@ -1,6 +1,5 @@
 """Embedding service using sentence-transformers (bge-m3)"""
 
-from typing import List, Optional
 import logging
 
 from src.core.config import settings
@@ -17,8 +16,8 @@ def _ensure_imports():
     global _SentenceTransformer, _np
     if _SentenceTransformer is None:
         try:
-            from sentence_transformers import SentenceTransformer
             import numpy as np
+            from sentence_transformers import SentenceTransformer
 
             _SentenceTransformer = SentenceTransformer
             _np = np
@@ -50,7 +49,7 @@ class EmbeddingService:
             logger.info(f"Model loaded on device: {self.device}")
         return self._model
 
-    def embed_text(self, text: str) -> List[float]:
+    def embed_text(self, text: str) -> list[float]:
         """
         Generate embedding for a single text
 
@@ -64,7 +63,7 @@ class EmbeddingService:
         embedding = self.model.encode(text, normalize_embeddings=True, show_progress_bar=False)
         return embedding.tolist()
 
-    def embed_batch(self, texts: List[str]) -> List[List[float]]:
+    def embed_batch(self, texts: list[str]) -> list[list[float]]:
         """
         Generate embeddings for a batch of texts
 
@@ -90,7 +89,7 @@ class EmbeddingService:
 
         return embeddings.tolist()
 
-    def embed_chunks(self, chunks: List[str]) -> List[List[float]]:
+    def embed_chunks(self, chunks: list[str]) -> list[list[float]]:
         """
         Generate embeddings for document chunks
 

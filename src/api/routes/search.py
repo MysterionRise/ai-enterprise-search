@@ -1,14 +1,15 @@
 """Search endpoints"""
 
-from fastapi import APIRouter, Security, HTTPException
-from typing import Annotated
 import logging
+from typing import Annotated
 
-from src.models.search import SearchRequest, SearchResponse, SuggestRequest, SuggestResponse
-from src.models.auth import TokenData
-from src.core.security import get_current_user
-from src.services.search_service import SearchService
+from fastapi import APIRouter, HTTPException, Security
+
 from src.core.database import log_search_query
+from src.core.security import get_current_user
+from src.models.auth import TokenData
+from src.models.search import SearchRequest, SearchResponse, SuggestRequest, SuggestResponse
+from src.services.search_service import SearchService
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
